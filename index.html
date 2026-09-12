@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ledger — CSV data explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0e0c13;
+    --bg-soft:#131019;
+    --surface:#171420;
+    --surface-raised:#1d1927;
+    --border:#2b2735;
+    --border-soft:#211d29;
+    --text:#ece9f2;
+    --text-muted:#948da3;
+    --text-faint:#5f596b;
+    --accent:#8b7ec4;
+    --accent-dim:#6f6499;
+    --accent-soft:rgba(139,126,196,0.16);
+    --income:#74aa8f;
+    --income-soft:rgba(116,170,143,0.15);
+    --expense:#c17b68;
+    --expense-soft:rgba(193,123,104,0.16);
+    --radius-lg:18px;
+    --radius-md:12px;
+    --radius-sm:8px;
+    --font-display:'Space Grotesk', system-ui, sans-serif;
+    --font-body:'IBM Plex Sans', system-ui, sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .grain-overlay{
+    position:fixed; inset:0; pointer-events:none; z-index:60; opacity:0.05; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size:150px 150px;
+  }
+
+  .app-shell{max-width:1240px; margin:0 auto; padding:0 2rem 3rem; position:relative;}
+
+  .masthead{display:flex; justify-content:space-between; align-items:flex-start; padding:2.6rem 0 2.2rem; gap:1rem; flex-wrap:wrap;}
+  .brand{display:flex; gap:0.85rem; align-items:flex-start;}
+  .brand-mark{font-size:1.3rem; color:var(--accent); line-height:1.6rem;}
+  .brand h1{font-family:var(--font-display); font-size:1.45rem; margin:0; font-weight:600; letter-spacing:-0.01em;}
+  .brand p{margin:0.2rem 0 0; color:var(--text-muted); font-size:0.9rem;}
+  .masthead-actions{display:flex; gap:0.6rem; flex-wrap:wrap; align-items:flex-start;}
+
+  .btn{font-family:var(--font-body); font-size:0.85rem; font-weight:500; padding:0.65rem 1.15rem; border-radius:var(--radius-sm); cursor:pointer; border:1px solid transparent; transition:background .15s ease, border-color .15s ease, color .15s ease;}
+  .btn-solid{background:var(--accent); color:#141019; border-color:var(--accent);}
+  .btn-solid:hover{background:#9c8fd6;}
+  .btn-ghost{background:transparent; border-color:var(--border); color:var(--text);}
+  .btn-ghost:hover{border-color:var(--accent-dim);}
+
+  .link-btn{background:none; border:none; color:var(--text-muted); font-family:var(--font-body); font-size:0.85rem; cursor:pointer; padding:0.3rem 0; text-decoration:underline; text-underline-offset:3px; text-decoration-color:var(--border);}
+  .link-btn:hover{color:var(--text); text-decoration-color:var(--accent);}
+
+  .empty-state:not([hidden]){display:flex;}
+  .empty-state{flex-direction:column; align-items:center; gap:1.3rem; padding:3.5rem 1rem 6rem;}
+  .scan-frame{position:relative; width:min(560px,100%); padding:3.4rem 2rem; text-align:center; cursor:pointer; border-radius:var(--radius-lg); background:var(--surface); border:1px solid var(--border-soft); transition:border-color .15s ease, background .15s ease;}
+  .scan-frame.dragging{border-color:var(--accent-dim); background:var(--surface-raised);}
+  .corner{position:absolute; width:16px; height:16px; border-color:var(--accent-dim); opacity:0.65;}
+  .corner-tl{top:10px; left:10px; border-top:2px solid; border-left:2px solid; border-radius:4px 0 0 0;}
+  .corner-tr{top:10px; right:10px; border-top:2px solid; border-right:2px solid; border-radius:0 4px 0 0;}
+  .corner-bl{bottom:10px; left:10px; border-bottom:2px solid; border-left:2px solid; border-radius:0 0 0 4px;}
+  .corner-br{bottom:10px; right:10px; border-bottom:2px solid; border-right:2px solid; border-radius:0 0 4px 0;}
+  .empty-status{color:var(--text-faint); font-size:0.8rem; margin:0 0 0.9rem;}
+  .empty-title{font-family:var(--font-display); font-size:1.35rem; margin:0 0 0.55rem; font-weight:600;}
+  .empty-sub{color:var(--text-muted); font-size:0.88rem; margin:0; line-height:1.55;}
+
+  .toast{position:fixed; top:1.2rem; left:50%; transform:translateX(-50%); background:var(--surface-raised); border:1px solid var(--border); color:var(--text); padding:0.7rem 1.15rem; border-radius:var(--radius-sm); font-size:0.85rem; z-index:100; max-width:min(90vw,420px); text-align:center;}
+  .toast.error{border-color:var(--expense); color:var(--expense);}
+
+  .dashboard:not([hidden]){display:flex;}
+  .dashboard{flex-direction:column; gap:1.3rem;}
+
+  .hero-row{display:grid; grid-template-columns:1.6fr 1fr; gap:1.2rem;}
+  .hero-panel{position:relative; overflow:hidden; background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:1.8rem 1.9rem 0; min-height:300px; display:flex; flex-direction:column;}
+  .hero-label{color:var(--text-muted); font-size:0.85rem; margin:0; position:relative; z-index:2;}
+  .hero-number{font-family:var(--font-display); font-size:clamp(2.2rem,4.6vw,3.3rem); font-weight:600; margin:0.35rem 0 0.15rem; letter-spacing:-0.01em; position:relative; z-index:2;}
+  .hero-number.negative{color:var(--expense);}
+  .hero-sub{color:var(--text-faint); font-size:0.85rem; margin:0; position:relative; z-index:2;}
+  .hero-chart-wrap{position:absolute; left:0; right:0; bottom:0; height:62%; -webkit-mask-image:linear-gradient(to bottom, transparent, black 38%); mask-image:linear-gradient(to bottom, transparent, black 38%);}
+
+  .stat-stack{display:grid; grid-template-columns:1fr 1fr; gap:1.2rem;}
+  .stat-card{background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius-md); padding:1.2rem 1.3rem; display:flex; flex-direction:column; justify-content:center; gap:0.4rem;}
+  .stat-label{color:var(--text-muted); font-size:0.8rem; margin:0;}
+  .stat-value{font-family:var(--font-display); font-size:1.5rem; font-weight:600; margin:0;}
+  .stat-value.income{color:var(--income);}
+  .stat-value.expense{color:var(--expense);}
+
+  .analysis-row{display:grid; grid-template-columns:1.3fr 1fr; gap:1.2rem;}
+  .panel{background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:1.5rem 1.6rem; display:flex; flex-direction:column;}
+  .panel-title{font-family:var(--font-display); font-size:1.05rem; font-weight:600; margin:0 0 1rem;}
+  .panel{background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:1.5rem 1.6rem;   .chart-box{position:relative; height:220px; flex:1 1 auto; min-height:220px;}display:flex; flex-direction:column;}
+  .donut-box{height:170px;}
+  .legend{display:flex; flex-direction:column; gap:0.55rem; margin-top:1.1rem;}
+  .legend-row{display:flex; align-items:center; gap:0.6rem; font-size:0.82rem;}
+  .legend-dot{width:9px; height:9px; border-radius:50%; flex-shrink:0;}
+  .legend-name{flex:1; color:var(--text);}
+  .legend-value{color:var(--text-muted); font-variant-numeric:tabular-nums;}
+
+  .table-panel .table-header{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.9rem; margin-bottom:1.1rem;}
+  .table-controls{display:flex; gap:0.7rem; align-items:center; flex-wrap:wrap;}
+  .search-input{background:var(--bg-soft); border:1px solid var(--border); border-radius:var(--radius-sm); padding:0.55rem 0.85rem; color:var(--text); font-family:var(--font-body); font-size:0.85rem; min-width:220px;}
+  .search-input::placeholder{color:var(--text-faint);}
+  .search-input:focus{outline:none; border-color:var(--accent-dim);}
+  .chip-group{display:flex; gap:0.3rem; background:var(--bg-soft); padding:0.25rem; border-radius:999px; border:1px solid var(--border);}
+  .chip{background:none; border:none; color:var(--text-muted); font-size:0.8rem; padding:0.4rem 0.9rem; border-radius:999px; cursor:pointer; font-family:var(--font-body);}
+  .chip.active{background:var(--accent-soft); color:var(--accent);}
+
+  .table-wrap{overflow-x:auto;}
+  table{width:100%; border-collapse:collapse; font-size:0.87rem;}
+  thead th{text-align:left; color:var(--text-faint); font-weight:500; font-size:0.78rem; padding:0.55rem 0.7rem; border-bottom:1px solid var(--border-soft); white-space:nowrap;}
+  th.num, td.num{text-align:right;}
+  tbody td{padding:0.65rem 0.7rem; border-bottom:1px solid var(--border-soft); color:var(--text); white-space:nowrap;}
+  tbody tr:hover{background:var(--bg-soft);}
+  .pill{display:inline-block; padding:0.2rem 0.65rem; border-radius:999px; font-size:0.76rem;}
+  .pill-category{background:var(--surface-raised); color:var(--text-muted); border:1px solid var(--border);}
+  .pill-income{background:var(--income-soft); color:var(--income);}
+  .pill-expense{background:var(--expense-soft); color:var(--expense);}
+  .amount-income{color:var(--income); font-variant-numeric:tabular-nums;}
+  .amount-expense{color:var(--expense); font-variant-numeric:tabular-nums;}
+  .table-empty{color:var(--text-muted); text-align:center; padding:2.2rem 0; font-size:0.88rem;}
+
+  .app-footer{display:flex; justify-content:space-between; align-items:center; color:var(--text-faint); font-size:0.8rem; padding-top:0.3rem; flex-wrap:wrap; gap:0.6rem;}
+
+  canvas{max-width:100%;}
+
+  :focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+
+  @media (max-width:880px){
+    .hero-row, .analysis-row{grid-template-columns:1fr;}
+  }
+  @media (max-width:520px){
+    .stat-stack{grid-template-columns:1fr;}
+    .search-input{min-width:0; width:100%;}
+    .table-controls{width:100%;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important; animation:none !important;}
+  }
+</style>
+</head>
+<body>
+<div class="grain-overlay" aria-hidden="true"></div>
+<div id="toast" class="toast" hidden></div>
+
+<div class="app-shell">
+  <header class="masthead">
+    <div class="brand">
+      <span class="brand-mark">&#9670;</span>
+      <div>
+        <h1>Ledger</h1>
+        <p>Drop a CSV, see what it's telling you.</p>
+      </div>
+    </div>
+    <div class="masthead-actions">
+      <button id="downloadSampleBtn" class="btn btn-ghost" type="button">Download sample CSV</button>
+      <button id="uploadBtn" class="btn btn-solid" type="button">Upload CSV</button>
+      <input type="file" id="fileInput" accept=".csv,text/csv" hidden>
+    </div>
+  </header>
+
+  <section id="emptyState" class="empty-state">
+    <div class="scan-frame" id="dropzone" role="button" tabindex="0" aria-label="Upload a CSV file">
+      <div class="corner corner-tl"></div>
+      <div class="corner corner-tr"></div>
+      <div class="corner corner-bl"></div>
+      <div class="corner corner-br"></div>
+      <p class="empty-status">No data loaded yet</p>
+      <p class="empty-title">Drop your CSV file here</p>
+      <p class="empty-sub">Or click to browse. Works best with columns for date, description, category, type, and amount.</p>
+    </div>
+    <button id="loadSampleBtn" class="link-btn" type="button">Or explore instantly with the sample ledger</button>
+  </section>
+
+  <section id="dashboard" class="dashboard" hidden>
+    <div class="hero-row">
+      <div class="hero-panel">
+        <p class="hero-label">Net position</p>
+        <p class="hero-number" id="heroNumber">$0.00</p>
+        <p class="hero-sub" id="heroSub">—</p>
+        <div class="hero-chart-wrap"><canvas id="cumulativeChart"></canvas></div>
+      </div>
+      <div class="stat-stack">
+        <div class="stat-card">
+          <p class="stat-label">Income</p>
+          <p class="stat-value income" id="statIncome">$0.00</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Expenses</p>
+          <p class="stat-value expense" id="statExpense">$0.00</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Transactions</p>
+          <p class="stat-value" id="statCount">0</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Average transaction</p>
+          <p class="stat-value" id="statAvg">$0.00</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="analysis-row">
+      <div class="panel">
+        <p class="panel-title">Monthly flow</p>
+        <div class="chart-box"><canvas id="monthlyChart"></canvas></div>
+      </div>
+      <div class="panel">
+        <p class="panel-title">Where expenses go</p>
+        <div class="chart-box donut-box"><canvas id="categoryChart"></canvas></div>
+        <div id="categoryLegend" class="legend"></div>
+      </div>
+    </div>
+
+    <div class="panel table-panel">
+      <div class="table-header">
+        <p class="panel-title">Transactions</p>
+        <div class="table-controls">
+          <input type="text" id="searchInput" class="search-input" placeholder="Search description or category">
+          <div class="chip-group" id="typeChips">
+            <button class="chip active" data-type="all" type="button">All</button>
+            <button class="chip" data-type="Income" type="button">Income</button>
+            <button class="chip" data-type="Expense" type="button">Expense</button>
+          </div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th class="num">Amount</th></tr></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+      <p id="tableEmpty" class="table-empty" hidden>No transactions match your filters.</p>
+    </div>
+
+    <footer class="app-footer">
+      <span id="sourceLabel">—</span>
+      <button id="resetBtn" class="link-btn" type="button">Load a different file</button>
+    </footer>
+  </section>
+</div>
+
+<script>
+const SAMPLE_CSV = `Date,Description,Category,Type,Amount
+2024-01-04,Monthly retainer - Alder & Finch,Consulting,Income,3400
+2024-01-05,Office rent,Rent,Expense,950
+2024-01-08,Co-working desk fee,Rent,Expense,180
+2024-01-10,Salary payment,Salaries,Expense,3200
+2024-01-12,Icon set licensing,Licensing Fees,Income,420
+2024-01-15,Cloud hosting - AWS,Software Subscriptions,Expense,210
+2024-01-17,Client payment - Bramwell Co,Client Payment,Income,5200
+2024-01-19,Team lunch & client meeting,Travel,Expense,96
+2024-01-24,Facebook ads campaign,Marketing,Expense,600
+2024-01-29,Freelance design work,Freelance Income,Income,1150
+2024-02-02,Business insurance premium,Insurance,Expense,240
+2024-02-05,Monthly retainer - Alder & Finch,Consulting,Income,3400
+2024-02-06,Office rent,Rent,Expense,950
+2024-02-11,Salary payment,Salaries,Expense,3200
+2024-02-13,Dividend - index fund,Investment Returns,Income,680
+2024-02-16,New monitor & keyboard,Equipment,Expense,340
+2024-02-20,Client payment - Voss Interiors,Client Payment,Income,2750
+2024-02-22,Electricity & water,Utilities,Expense,165
+2024-02-27,Notion + Figma subscriptions,Software Subscriptions,Expense,89
+2024-03-01,Quarterly tax remittance,Taxes,Expense,1200
+2024-03-04,Monthly retainer - Alder & Finch,Consulting,Income,3400
+2024-03-07,Office rent,Rent,Expense,950
+2024-03-11,Salary payment,Salaries,Expense,3200
+2024-03-14,Workshop facilitation fee,Freelance Income,Income,900
+2024-03-18,Flight - client site visit,Travel,Expense,410
+2024-03-21,Client payment - Bramwell Co,Client Payment,Income,5200
+2024-03-25,Google Ads campaign,Marketing,Expense,540
+2024-03-28,Printer paper & supplies,Office Supplies,Expense,58
+2024-04-02,Office rent,Rent,Expense,950
+2024-04-04,Monthly retainer - Alder & Finch,Consulting,Income,3400
+2024-04-09,Salary payment,Salaries,Expense,3200
+2024-04-12,Icon set licensing,Licensing Fees,Income,380
+2024-04-15,Dividend - index fund,Investment Returns,Income,710
+2024-04-19,External contractor - copywriting,Contractor Fees,Expense,620
+2024-04-23,Client payment - Voss Interiors,Client Payment,Income,2900
+2024-04-26,Electricity & water,Utilities,Expense,172
+2024-05-03,Office rent,Rent,Expense,950
+2024-05-06,Monthly retainer - Alder & Finch,Consulting,Income,3400
+2024-05-10,Salary payment,Salaries,Expense,3200
+2024-05-14,Client payment - Bramwell Co,Client Payment,Income,5200
+2024-05-17,Business insurance premium,Insurance,Expense,240
+2024-05-21,LinkedIn ads campaign,Marketing,Expense,480
+2024-05-24,Laptop stand & accessories,Equipment,Expense,145
+2024-05-29,Freelance illustration work,Freelance Income,Income,980
+2024-06-02,Office rent,Rent,Expense,950
+2024-06-05,Monthly retainer - Alder & Finch,Consulting,Income,3400
+2024-06-10,Salary payment,Salaries,Expense,3200
+2024-06-13,Dividend - index fund,Investment Returns,Income,705
+2024-06-18,Client payment - Voss Interiors,Client Payment,Income,3100
+2024-06-22,Cloud hosting - AWS,Software Subscriptions,Expense,225
+2024-06-27,Quarterly tax remittance,Taxes,Expense,1350`;
+
+const currencyFmt = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+let currentRows = [];
+const charts = {};
+
+if (window.Chart) {
+  Chart.defaults.font.family = "'IBM Plex Sans', system-ui, sans-serif";
+  Chart.defaults.color = '#948da3';
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, ch => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[ch]));
+}
+
+function parseCSVLine(line) {
+  const result = [];
+  let cur = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (line[i + 1] === '"') { cur += '"'; i++; } else { inQuotes = false; }
+      } else { cur += ch; }
+    } else {
+      if (ch === '"') inQuotes = true;
+      else if (ch === ',') { result.push(cur); cur = ''; }
+      else cur += ch;
+    }
+  }
+  result.push(cur);
+  return result.map(s => s.trim());
+}
+
+function parseCSV(text) {
+  const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter(l => l.trim().length > 0);
+  if (lines.length < 2) throw new Error('empty');
+  const header = parseCSVLine(lines[0]).map(h => h.toLowerCase());
+  const idx = (names) => { for (const n of names) { const i = header.indexOf(n); if (i !== -1) return i; } return -1; };
+  const dateIdx = idx(['date', 'transaction date']);
+  const descIdx = idx(['description', 'desc', 'memo', 'details', 'narration']);
+  const catIdx = idx(['category', 'tag']);
+  const typeIdx = idx(['type', 'direction']);
+  const amountIdx = idx(['amount', 'value']);
+  if (dateIdx === -1 || amountIdx === -1) throw new Error('missing_columns');
+
+  const rows = [];
+  let skipped = 0;
+  for (let i = 1; i < lines.length; i++) {
+    const cells = parseCSVLine(lines[i]);
+    if (cells.every(c => c.trim() === '')) continue;
+    const dateRaw = cells[dateIdx];
+    const amountRaw = cells[amountIdx];
+    const amountNum = parseFloat(String(amountRaw || '').replace(/[^0-9.\-]/g, ''));
+    const date = new Date(dateRaw);
+    if (!dateRaw || isNaN(amountNum) || isNaN(date.getTime())) { skipped++; continue; }
+    let type = typeIdx !== -1 ? (cells[typeIdx] || '').trim() : '';
+    if (!type) {
+      type = amountNum < 0 ? 'Expense' : 'Income';
+    } else {
+      const t = type.toLowerCase();
+      type = (t.startsWith('exp') || t === 'debit' || t === '-') ? 'Expense' : 'Income';
+    }
+    rows.push({
+      date,
+      description: descIdx !== -1 && cells[descIdx] ? cells[descIdx] : 'Untitled',
+      category: catIdx !== -1 && cells[catIdx] ? cells[catIdx] : 'Uncategorized',
+      type,
+      amount: Math.abs(amountNum)
+    });
+  }
+  return { rows, skipped };
+}
+
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.hidden = false;
+  t.classList.toggle('error', !!isError);
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => { t.hidden = true; }, 4500);
+}
+
+function buildCumulativeChart(rows) {
+  const sorted = rows.slice().sort((a, b) => a.date - b.date);
+  let running = 0;
+  const points = sorted.map(r => { running += (r.type === 'Income' ? r.amount : -r.amount); return running; });
+  const labels = sorted.map(r => r.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+  const canvas = document.getElementById('cumulativeChart');
+  const ctx = canvas.getContext('2d');
+  const gradient = ctx.createLinearGradient(0, 0, 0, 220);
+  gradient.addColorStop(0, 'rgba(139,126,196,0.38)');
+  gradient.addColorStop(1, 'rgba(139,126,196,0)');
+  if (charts.cumulative) charts.cumulative.destroy();
+  charts.cumulative = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [{ data: points, borderColor: '#8b7ec4', borderWidth: 2, backgroundColor: gradient, fill: true, tension: 0.35, pointRadius: 0, pointHoverRadius: 4, pointHoverBackgroundColor: '#8b7ec4', pointHoverBorderWidth: 0 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { intersect: false, mode: 'index' },
+      plugins: {
+        legend: { display: false },
+        tooltip: { backgroundColor: '#1d1927', borderColor: '#2b2735', borderWidth: 1, titleColor: '#ece9f2', bodyColor: '#948da3', padding: 10, cornerRadius: 8, displayColors: false, callbacks: { label: (item) => currencyFmt.format(item.parsed.y) } }
+      },
+      scales: {
+        x: { display: false, grid: { display: false } },
+        y: { display: false, grid: { display: false } }
+      }
+    }
+  });
+}
+
+function buildMonthlyChart(rows) {
+  const map = new Map();
+  rows.forEach(r => {
+    const key = `${r.date.getFullYear()}-${String(r.date.getMonth() + 1).padStart(2, '0')}`;
+    if (!map.has(key)) map.set(key, { income: 0, expense: 0, label: r.date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }) });
+    const entry = map.get(key);
+    if (r.type === 'Income') entry.income += r.amount; else entry.expense += r.amount;
+  });
+  const keys = Array.from(map.keys()).sort();
+  const labels = keys.map(k => map.get(k).label);
+  const incomeData = keys.map(k => map.get(k).income);
+  const expenseData = keys.map(k => map.get(k).expense);
+  if (charts.monthly) charts.monthly.destroy();
+  charts.monthly = new Chart(document.getElementById('monthlyChart'), {
+    type: 'bar',
+    data: { labels, datasets: [
+      { label: 'Income', data: incomeData, backgroundColor: '#74aa8f', borderRadius: 4, maxBarThickness: 22 },
+      { label: 'Expenses', data: expenseData, backgroundColor: '#c17b68', borderRadius: 4, maxBarThickness: 22 }
+    ] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', align: 'end', labels: { boxWidth: 8, boxHeight: 8, usePointStyle: true, pointStyle: 'circle', color: '#948da3', font: { size: 11 } } },
+        tooltip: { backgroundColor: '#1d1927', borderColor: '#2b2735', borderWidth: 1, titleColor: '#ece9f2', bodyColor: '#948da3', padding: 10, cornerRadius: 8, callbacks: { label: (item) => `${item.dataset.label}: ${currencyFmt.format(item.parsed.y)}` } }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#948da3', font: { size: 11 } } },
+        y: { grid: { color: '#211d29' }, ticks: { color: '#948da3', font: { size: 11 }, callback: (v) => v >= 1000 ? '$' + (v / 1000) + 'k' : '$' + v } }
+      }
+    }
+  });
+}
+
+function buildCategoryChart(rows) {
+  const expenseRows = rows.filter(r => r.type === 'Expense');
+  const map = new Map();
+  expenseRows.forEach(r => { map.set(r.category, (map.get(r.category) || 0) + r.amount); });
+  let entries = Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
+  const palette = ['#8b7ec4', '#c17b68', '#c9a86a', '#6a9fc9', '#7a9c7a', '#a67ab0', '#948da3'];
+  let top = entries.slice(0, 6);
+  if (entries.length > 6) {
+    const otherSum = entries.slice(6).reduce((s, e) => s + e[1], 0);
+    top.push(['Other', otherSum]);
+  }
+  const labels = top.map(e => e[0]);
+  const data = top.map(e => e[1]);
+  const colors = top.map((_, i) => palette[i % palette.length]);
+  if (charts.category) charts.category.destroy();
+  charts.category = new Chart(document.getElementById('categoryChart'), {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data, backgroundColor: colors, borderColor: '#171420', borderWidth: 2, hoverOffset: 6 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '68%',
+      plugins: {
+        legend: { display: false },
+        tooltip: { backgroundColor: '#1d1927', borderColor: '#2b2735', borderWidth: 1, titleColor: '#ece9f2', bodyColor: '#948da3', padding: 10, cornerRadius: 8, callbacks: { label: (item) => `${item.label}: ${currencyFmt.format(item.parsed)}` } }
+      }
+    }
+  });
+  const legendEl = document.getElementById('categoryLegend');
+  legendEl.innerHTML = top.map((e, i) => `
+    <div class="legend-row">
+      <span class="legend-dot" style="background:${colors[i]}"></span>
+      <span class="legend-name">${escapeHtml(e[0])}</span>
+      <span class="legend-value">${currencyFmt.format(e[1])}</span>
+    </div>`).join('');
+}
+
+function renderTable() {
+  const search = document.getElementById('searchInput').value.trim().toLowerCase();
+  const activeType = document.querySelector('.chip.active').dataset.type;
+  let rows = currentRows.filter(r => {
+    if (activeType !== 'all' && r.type !== activeType) return false;
+    if (search && !(r.description.toLowerCase().includes(search) || r.category.toLowerCase().includes(search))) return false;
+    return true;
+  });
+  rows = rows.slice().sort((a, b) => b.date - a.date);
+  const tbody = document.getElementById('tableBody');
+  const emptyMsg = document.getElementById('tableEmpty');
+  if (rows.length === 0) {
+    tbody.innerHTML = '';
+    emptyMsg.hidden = false;
+  } else {
+    emptyMsg.hidden = true;
+    tbody.innerHTML = rows.map(r => `
+      <tr>
+        <td>${r.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+        <td>${escapeHtml(r.description)}</td>
+        <td><span class="pill pill-category">${escapeHtml(r.category)}</span></td>
+        <td><span class="pill ${r.type === 'Income' ? 'pill-income' : 'pill-expense'}">${r.type}</span></td>
+        <td class="num ${r.type === 'Income' ? 'amount-income' : 'amount-expense'}">${r.type === 'Income' ? '+' : '-'}${currencyFmt.format(r.amount)}</td>
+      </tr>`).join('');
+  }
+}
+
+function loadData(rows, sourceName) {
+  if (!rows || rows.length === 0) { showToast('No usable rows found. Check that your CSV has date and amount columns.', true); return; }
+  currentRows = rows;
+  document.getElementById('emptyState').hidden = true;
+  document.getElementById('dashboard').hidden = false;
+  document.getElementById('sourceLabel').textContent = sourceName;
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  document.querySelector('.chip[data-type="all"]').classList.add('active');
+  document.getElementById('searchInput').value = '';
+
+  const income = rows.filter(r => r.type === 'Income').reduce((s, r) => s + r.amount, 0);
+  const expense = rows.filter(r => r.type === 'Expense').reduce((s, r) => s + r.amount, 0);
+  const net = income - expense;
+  const heroNumberEl = document.getElementById('heroNumber');
+  heroNumberEl.textContent = currencyFmt.format(net);
+  heroNumberEl.classList.toggle('negative', net < 0);
+  const lastDate = rows.reduce((max, r) => (r.date > max ? r.date : max), rows[0].date);
+  document.getElementById('heroSub').textContent = `As of ${lastDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}, based on ${rows.length} transactions.`;
+  document.getElementById('statIncome').textContent = currencyFmt.format(income);
+  document.getElementById('statExpense').textContent = currencyFmt.format(expense);
+  document.getElementById('statCount').textContent = rows.length;
+  document.getElementById('statAvg').textContent = currencyFmt.format((income + expense) / rows.length);
+
+  renderTable();
+
+  if (window.Chart) {
+    buildCumulativeChart(rows);
+    buildMonthlyChart(rows);
+    buildCategoryChart(rows);
+  } else {
+    showToast('Charts could not load (Chart.js unreachable). Table still works.', true);
+  }
+}
+
+function handleFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const { rows, skipped } = parseCSV(e.target.result);
+      loadData(rows, file.name);
+      if (rows.length > 0 && skipped > 0) {
+        showToast(`Loaded ${rows.length} rows — skipped ${skipped} missing a date or amount.`, false);
+      }
+    } catch (err) {
+      showToast("Could not read that file. Make sure it's a CSV with columns like date, description, category, type, and amount.", true);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function downloadSample() {
+  const blob = new Blob([SAMPLE_CSV], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'sample-transactions.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Sample CSV downloaded — drop it back in to load it.', false);
+}
+
+document.getElementById('downloadSampleBtn').addEventListener('click', downloadSample);
+document.getElementById('loadSampleBtn').addEventListener('click', () => {
+  const { rows } = parseCSV(SAMPLE_CSV);
+  loadData(rows, 'sample-transactions.csv');
+});
+document.getElementById('uploadBtn').addEventListener('click', () => document.getElementById('fileInput').click());
+document.getElementById('fileInput').addEventListener('change', (e) => {
+  const f = e.target.files[0];
+  if (f) handleFile(f);
+  e.target.value = '';
+});
+document.getElementById('resetBtn').addEventListener('click', () => {
+  document.getElementById('dashboard').hidden = true;
+  document.getElementById('emptyState').hidden = false;
+  currentRows = [];
+});
+document.getElementById('searchInput').addEventListener('input', renderTable);
+document.querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    renderTable();
+  });
+});
+
+const dropzone = document.getElementById('dropzone');
+dropzone.addEventListener('click', () => document.getElementById('fileInput').click());
+dropzone.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); document.getElementById('fileInput').click(); } });
+['dragenter', 'dragover'].forEach(evt => dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.add('dragging'); }));
+['dragleave', 'drop'].forEach(evt => dropzone.addEventListener(evt, (e) => { e.preventDefault(); dropzone.classList.remove('dragging'); }));
+dropzone.addEventListener('drop', (e) => {
+  const f = e.dataTransfer.files[0];
+  if (f) handleFile(f);
+});
+</script>
+</body>
+</html>
