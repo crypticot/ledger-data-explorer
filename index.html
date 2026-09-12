@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ledger — CSV data explorer</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%230e0c13'/%3E%3Cpath d='M12 3.5 18.5 12 12 20.5 5.5 12 12 3.5Z' fill='%238b7ec4'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -51,24 +52,36 @@
 
   .app-shell{max-width:1240px; margin:0 auto; padding:0 2rem 3rem; position:relative;}
 
-  .masthead{display:flex; justify-content:space-between; align-items:flex-start; padding:2.6rem 0 2.2rem; gap:1rem; flex-wrap:wrap;}
+  .masthead{display:flex; justify-content:space-between; align-items:flex-start; padding:2.6rem 0 1.6rem; gap:1rem; flex-wrap:wrap;}
   .brand{display:flex; gap:0.85rem; align-items:flex-start;}
   .brand-mark{font-size:1.3rem; color:var(--accent); line-height:1.6rem;}
   .brand h1{font-family:var(--font-display); font-size:1.45rem; margin:0; font-weight:600; letter-spacing:-0.01em;}
   .brand p{margin:0.2rem 0 0; color:var(--text-muted); font-size:0.9rem;}
   .masthead-actions{display:flex; gap:0.6rem; flex-wrap:wrap; align-items:flex-start;}
 
-  .btn{font-family:var(--font-body); font-size:0.85rem; font-weight:500; padding:0.65rem 1.15rem; border-radius:var(--radius-sm); cursor:pointer; border:1px solid transparent; transition:background .15s ease, border-color .15s ease, color .15s ease;}
+  .btn{font-family:var(--font-body); font-size:0.85rem; font-weight:500; padding:0.65rem 1.15rem; border-radius:var(--radius-sm); cursor:pointer; border:1px solid transparent; transition:background .15s ease, border-color .15s ease, color .15s ease, opacity .15s ease;}
   .btn-solid{background:var(--accent); color:#141019; border-color:var(--accent);}
   .btn-solid:hover{background:#9c8fd6;}
   .btn-ghost{background:transparent; border-color:var(--border); color:var(--text);}
   .btn-ghost:hover{border-color:var(--accent-dim);}
+  .btn:disabled{opacity:0.4; cursor:not-allowed;}
+  .btn:disabled:hover{background:transparent; border-color:var(--border);}
+  .btn-sm{padding:0.42rem 0.8rem; font-size:0.78rem;}
 
   .link-btn{background:none; border:none; color:var(--text-muted); font-family:var(--font-body); font-size:0.85rem; cursor:pointer; padding:0.3rem 0; text-decoration:underline; text-underline-offset:3px; text-decoration-color:var(--border);}
   .link-btn:hover{color:var(--text); text-decoration-color:var(--accent);}
 
+  /* page nav */
+  .page-nav{display:flex; gap:1.4rem; border-bottom:1px solid var(--border-soft); margin-bottom:1.8rem;}
+  .nav-tab{background:none; border:none; color:var(--text-muted); font-family:var(--font-body); font-size:0.86rem; font-weight:500; padding:0.7rem 0.1rem; cursor:pointer; border-bottom:2px solid transparent; transition:color .15s ease, border-color .15s ease;}
+  .nav-tab:hover{color:var(--text);}
+  .nav-tab.active{color:var(--accent); border-bottom-color:var(--accent);}
+
+  .page{display:block;}
+  .page[hidden]{display:none;}
+
   .empty-state:not([hidden]){display:flex;}
-  .empty-state{flex-direction:column; align-items:center; gap:1.3rem; padding:3.5rem 1rem 6rem;}
+  .empty-state{flex-direction:column; align-items:center; gap:1.3rem; padding:2.4rem 1rem 3.5rem;}
   .scan-frame{position:relative; width:min(560px,100%); padding:3.4rem 2rem; text-align:center; cursor:pointer; border-radius:var(--radius-lg); background:var(--surface); border:1px solid var(--border-soft); transition:border-color .15s ease, background .15s ease;}
   .scan-frame.dragging{border-color:var(--accent-dim); background:var(--surface-raised);}
   .corner{position:absolute; width:16px; height:16px; border-color:var(--accent-dim); opacity:0.65;}
@@ -83,8 +96,13 @@
   .toast{position:fixed; top:1.2rem; left:50%; transform:translateX(-50%); background:var(--surface-raised); border:1px solid var(--border); color:var(--text); padding:0.7rem 1.15rem; border-radius:var(--radius-sm); font-size:0.85rem; z-index:100; max-width:min(90vw,420px); text-align:center;}
   .toast.error{border-color:var(--expense); color:var(--expense);}
 
-  .dashboard:not([hidden]){display:flex;}
-  .dashboard{flex-direction:column; gap:1.3rem;}
+  .dashboard{display:flex; flex-direction:column; gap:1.3rem;}
+
+  .filters-row{display:flex; align-items:center; gap:0.7rem; flex-wrap:wrap; margin-bottom:1.3rem;}
+  .filters-label{color:var(--text-muted); font-size:0.85rem;}
+  select.filter-select{background:var(--bg-soft); border:1px solid var(--border); border-radius:var(--radius-sm); padding:0.5rem 0.7rem; color:var(--text); font-family:var(--font-body); font-size:0.85rem; min-width:130px; cursor:pointer;}
+  select.filter-select:focus{outline:none; border-color:var(--accent-dim);}
+  #customCurrencyInput{min-width:70px; width:70px; text-transform:uppercase; cursor:text;}
 
   .hero-row{display:grid; grid-template-columns:1.6fr 1fr; gap:1.2rem;}
   .hero-panel{position:relative; overflow:hidden; background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:1.8rem 1.9rem 0; min-height:300px; display:flex; flex-direction:column;}
@@ -100,11 +118,12 @@
   .stat-value{font-family:var(--font-display); font-size:1.5rem; font-weight:600; margin:0;}
   .stat-value.income{color:var(--income);}
   .stat-value.expense{color:var(--expense);}
+  .stat-value.negative{color:var(--expense);}
 
   .analysis-row{display:grid; grid-template-columns:1.3fr 1fr; gap:1.2rem;}
   .panel{background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:1.5rem 1.6rem; display:flex; flex-direction:column;}
   .panel-title{font-family:var(--font-display); font-size:1.05rem; font-weight:600; margin:0 0 1rem;}
-  .panel{background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:1.5rem 1.6rem;   .chart-box{position:relative; height:220px; flex:1 1 auto; min-height:220px;}display:flex; flex-direction:column;}
+  .chart-box{position:relative; height:220px; flex:1 1 auto; min-height:220px;}
   .donut-box{height:170px;}
   .legend{display:flex; flex-direction:column; gap:0.55rem; margin-top:1.1rem;}
   .legend-row{display:flex; align-items:center; gap:0.6rem; font-size:0.82rem;}
@@ -122,10 +141,16 @@
   .chip.active{background:var(--accent-soft); color:var(--accent);}
 
   .table-wrap{overflow-x:auto;}
+  .table-scroll{max-height:60vh; overflow-y:auto; border:1px solid var(--border-soft); border-radius:var(--radius-sm);}
   table{width:100%; border-collapse:collapse; font-size:0.87rem;}
-  thead th{text-align:left; color:var(--text-faint); font-weight:500; font-size:0.78rem; padding:0.55rem 0.7rem; border-bottom:1px solid var(--border-soft); white-space:nowrap;}
+  thead th{text-align:left; color:var(--text-faint); font-weight:500; font-size:0.78rem; padding:0.55rem 0.7rem; border-bottom:1px solid var(--border-soft); white-space:nowrap; position:sticky; top:0; background:var(--surface); z-index:1;}
   th.num, td.num{text-align:right;}
+  th.sortable{cursor:pointer; user-select:none;}
+  th.sortable:hover{color:var(--text);}
+  .sort-mark{margin-left:4px; font-size:0.7em; color:var(--accent);}
+  .sort-rank{font-size:0.62em; vertical-align:super; margin-left:1px; color:var(--accent-dim);}
   tbody td{padding:0.65rem 0.7rem; border-bottom:1px solid var(--border-soft); color:var(--text); white-space:nowrap;}
+  tbody td.muted{color:var(--text-faint);}
   tbody tr:hover{background:var(--bg-soft);}
   .pill{display:inline-block; padding:0.2rem 0.65rem; border-radius:999px; font-size:0.76rem;}
   .pill-category{background:var(--surface-raised); color:var(--text-muted); border:1px solid var(--border);}
@@ -135,19 +160,75 @@
   .amount-expense{color:var(--expense); font-variant-numeric:tabular-nums;}
   .table-empty{color:var(--text-muted); text-align:center; padding:2.2rem 0; font-size:0.88rem;}
 
+  .table-pagination{display:flex; justify-content:space-between; align-items:center; margin-top:0.9rem; flex-wrap:wrap; gap:0.6rem; font-size:0.8rem; color:var(--text-muted);}
+  .pagination-btns{display:flex; align-items:center; gap:0.7rem;}
+  .pagination-page{white-space:nowrap;}
+
   .app-footer{display:flex; justify-content:space-between; align-items:center; color:var(--text-faint); font-size:0.8rem; padding-top:0.3rem; flex-wrap:wrap; gap:0.6rem;}
+  .home-footer{justify-content:flex-end; margin-top:1.6rem;}
+  .cotworks-link{color:var(--text-faint); font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; text-decoration:none;}
+  .cotworks-link:hover{color:var(--accent);}
+
+  /* home preview */
+  .home-preview{display:flex; flex-direction:column; gap:1.3rem; padding-bottom:2rem;}
+  .preview-status{color:var(--text-muted); font-size:0.85rem;}
+  .preview-stats{display:grid; grid-template-columns:repeat(3,1fr); gap:1rem;}
+  .preview-actions{display:flex; gap:0.9rem; align-items:center; flex-wrap:wrap; margin-top:0.2rem;}
+
+  /* help section */
+  .help-section{margin-top:0.6rem; padding-top:1.8rem; border-top:1px solid var(--border-soft);}
+  .accordion-item{border-bottom:1px solid var(--border-soft);}
+  .accordion-item:last-child{border-bottom:none;}
+  .accordion-trigger{width:100%; display:flex; justify-content:space-between; align-items:center; gap:0.8rem; background:none; border:none; color:var(--text); font-family:var(--font-body); font-size:0.92rem; font-weight:500; padding:0.9rem 0.1rem; cursor:pointer; text-align:left;}
+  .accordion-chevron{flex-shrink:0; color:var(--text-muted); transition:transform .2s ease;}
+  .accordion-item.open .accordion-chevron{transform:rotate(180deg);}
+  .accordion-panel{max-height:0; overflow:hidden; transition:max-height .25s ease;}
+  .accordion-item.open .accordion-panel{max-height:400px;}
+  .accordion-body{padding:0 0.1rem 1rem; color:var(--text-muted); font-size:0.85rem; line-height:1.6;}
+  .accordion-body p{margin:0 0 0.6rem;}
+  .accordion-body p:last-child{margin-bottom:0;}
 
   canvas{max-width:100%;}
+  #categoryChart{cursor:pointer;}
 
   :focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
 
+  /* validation preview */
+  .panel-sub{color:var(--text-muted); font-size:0.82rem; margin:-0.6rem 0 1rem; line-height:1.5;}
+  .validation-table{width:100%; border-collapse:collapse; font-size:0.82rem;}
+  .validation-table th{text-align:left; color:var(--text-faint); font-weight:500; font-size:0.75rem; padding:0.5rem 0.6rem; border-bottom:1px solid var(--border-soft); white-space:nowrap;}
+  .validation-table th.num, .validation-table td.num{text-align:right;}
+  .validation-table td{padding:0.55rem 0.6rem; border-bottom:1px solid var(--border-soft); vertical-align:top;}
+  .val-raw{color:var(--text-faint); font-size:0.74rem; line-height:1.3;}
+  .val-parsed{color:var(--text); line-height:1.4; margin-top:0.15rem;}
+  .val-mismatch .val-parsed{color:var(--expense);}
+  .row-mismatch{background:var(--expense-soft);}
+  .validation-errors{margin-top:1.2rem; padding:0.9rem 1rem; border:1px solid var(--expense); border-radius:var(--radius-sm); background:var(--expense-soft);}
+  .validation-errors-title{margin:0 0 0.5rem; color:var(--expense); font-size:0.86rem; font-weight:500;}
+  .validation-error-list{margin:0; padding-left:1.2rem; color:var(--text); font-size:0.8rem; line-height:1.6; max-height:220px; overflow-y:auto;}
+  .err-row{color:var(--expense); font-weight:500;}
+
+  /* category cross-filter */
+  .legend-clickable{cursor:pointer; border-radius:6px; padding:0.25rem 0.4rem; margin:-0.25rem -0.4rem; transition:background .15s ease, opacity .15s ease;}
+  .legend-clickable:hover{background:var(--bg-soft);}
+  .legend-active{background:var(--accent-soft);}
+  .legend-dimmed{opacity:0.4;}
+  .category-filter-indicator{display:inline-flex; align-items:center; gap:0.5rem; background:var(--accent-soft); color:var(--accent); border-radius:999px; padding:0.4rem 0.5rem 0.4rem 0.9rem; font-size:0.8rem;}
+  .filter-indicator-clear{background:none; border:none; color:var(--accent); font-size:1rem; line-height:1; cursor:pointer; padding:0.1rem 0.3rem;}
+  .filter-indicator-clear:hover{color:var(--text);}
+
   @media (max-width:880px){
     .hero-row, .analysis-row{grid-template-columns:1fr;}
+    .preview-stats{grid-template-columns:1fr 1fr;}
   }
   @media (max-width:520px){
     .stat-stack{grid-template-columns:1fr;}
+    .preview-stats{grid-template-columns:1fr;}
     .search-input{min-width:0; width:100%;}
     .table-controls{width:100%;}
+    .masthead{flex-direction:column; align-items:stretch; gap:1.2rem;}
+    .masthead-actions{width:100%; flex-wrap:nowrap; gap:0.5rem;}
+    .masthead-actions .btn{flex:1 1 0; text-align:center; padding:0.62rem 0.4rem; font-size:0.78rem;}
   }
   @media (prefers-reduced-motion: reduce){
     *{transition:none !important; animation:none !important;}
@@ -174,84 +255,220 @@
     </div>
   </header>
 
-  <section id="emptyState" class="empty-state">
-    <div class="scan-frame" id="dropzone" role="button" tabindex="0" aria-label="Upload a CSV file">
-      <div class="corner corner-tl"></div>
-      <div class="corner corner-tr"></div>
-      <div class="corner corner-bl"></div>
-      <div class="corner corner-br"></div>
-      <p class="empty-status">No data loaded yet</p>
-      <p class="empty-title">Drop your CSV file here</p>
-      <p class="empty-sub">Or click to browse. Works best with columns for date, description, category, type, and amount.</p>
-    </div>
-    <button id="loadSampleBtn" class="link-btn" type="button">Or explore instantly with the sample ledger</button>
-  </section>
+  <nav class="page-nav" id="pageNav">
+    <button type="button" class="nav-tab active" data-page="home" onclick="switchPage('home')">Home</button>
+    <button type="button" class="nav-tab" data-page="analysis" onclick="switchPage('analysis')">Analysis</button>
+  </nav>
 
-  <section id="dashboard" class="dashboard" hidden>
-    <div class="hero-row">
-      <div class="hero-panel">
-        <p class="hero-label">Net position</p>
-        <p class="hero-number" id="heroNumber">$0.00</p>
-        <p class="hero-sub" id="heroSub">—</p>
-        <div class="hero-chart-wrap"><canvas id="cumulativeChart"></canvas></div>
+  <section id="page-home" class="page">
+    <section id="emptyState" class="empty-state">
+      <div class="scan-frame" id="dropzone" role="button" tabindex="0" aria-label="Upload a CSV file">
+        <div class="corner corner-tl"></div>
+        <div class="corner corner-tr"></div>
+        <div class="corner corner-bl"></div>
+        <div class="corner corner-br"></div>
+        <p class="empty-status">No data loaded yet</p>
+        <p class="empty-title">Drop your CSV file here</p>
+        <p class="empty-sub">Or click to browse. Works best with columns for date, description, category, type, and amount.</p>
       </div>
-      <div class="stat-stack">
+      <button id="loadSampleBtn" class="link-btn" type="button">Or explore instantly with the sample ledger</button>
+    </section>
+
+    <section id="homePreview" class="home-preview" hidden>
+      <p class="preview-status">
+        <span id="previewSourceLabel">—</span> · <span id="previewCount">0 transactions</span> · <span id="previewRange">—</span>
+      </p>
+      <div class="preview-stats">
+        <div class="stat-card">
+          <p class="stat-label">Net position</p>
+          <p class="stat-value" id="previewNet">$0.00</p>
+        </div>
         <div class="stat-card">
           <p class="stat-label">Income</p>
-          <p class="stat-value income" id="statIncome">$0.00</p>
+          <p class="stat-value income" id="previewIncome">$0.00</p>
         </div>
         <div class="stat-card">
           <p class="stat-label">Expenses</p>
-          <p class="stat-value expense" id="statExpense">$0.00</p>
+          <p class="stat-value expense" id="previewExpense">$0.00</p>
         </div>
-        <div class="stat-card">
-          <p class="stat-label">Transactions</p>
-          <p class="stat-value" id="statCount">0</p>
-        </div>
-        <div class="stat-card">
-          <p class="stat-label">Average transaction</p>
-          <p class="stat-value" id="statAvg">$0.00</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="analysis-row">
-      <div class="panel">
-        <p class="panel-title">Monthly flow</p>
-        <div class="chart-box"><canvas id="monthlyChart"></canvas></div>
       </div>
       <div class="panel">
-        <p class="panel-title">Where expenses go</p>
-        <div class="chart-box donut-box"><canvas id="categoryChart"></canvas></div>
-        <div id="categoryLegend" class="legend"></div>
+        <p class="panel-title">How we're reading your file</p>
+        <p class="panel-sub" id="validationColumnNote">—</p>
+        <div class="table-wrap">
+          <table class="validation-table">
+            <thead><tr><th>#</th><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th class="num">Amount</th></tr></thead>
+            <tbody id="validationTableBody"></tbody>
+          </table>
+        </div>
+        <div class="validation-errors" id="validationErrors" hidden>
+          <p class="validation-errors-title">&#9888; <span id="validationErrorCount">0</span> issue(s) found across your file &mdash; fix them and re-upload to continue.</p>
+          <ul id="validationErrorList" class="validation-error-list"></ul>
+        </div>
       </div>
-    </div>
+      <div class="preview-actions">
+        <button type="button" class="btn btn-solid" id="viewAnalysisBtn">View full analysis &rarr;</button>
+        <button type="button" class="link-btn" id="previewResetBtn">Load a different file</button>
+      </div>
+    </section>
 
-    <div class="panel table-panel">
-      <div class="table-header">
-        <p class="panel-title">Transactions</p>
-        <div class="table-controls">
-          <input type="text" id="searchInput" class="search-input" placeholder="Search description or category">
-          <div class="chip-group" id="typeChips">
-            <button class="chip active" data-type="all" type="button">All</button>
-            <button class="chip" data-type="Income" type="button">Income</button>
-            <button class="chip" data-type="Expense" type="button">Expense</button>
+    <section id="helpSection" class="help-section">
+      <p class="panel-title">Help</p>
+      <div class="accordion" id="helpAccordion">
+        <div class="accordion-item open">
+          <button type="button" class="accordion-trigger" onclick="toggleAccordion(this)">
+            What CSV format works best?
+            <svg class="accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="accordion-panel"><div class="accordion-body">
+            <p>A header row plus columns for <b>date</b>, <b>description</b>, <b>category</b>, <b>type</b>, and <b>amount</b> work best. Only date and amount are required — the rest are filled in with sensible defaults if missing.</p>
+            <p>If there's no type column, a negative or positive amount decides whether a row counts as income or an expense.</p>
+          </div></div>
+        </div>
+        <div class="accordion-item">
+          <button type="button" class="accordion-trigger" onclick="toggleAccordion(this)">
+            What happens after I upload?
+            <svg class="accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="accordion-panel"><div class="accordion-body">
+            <p>You'll stay right here on the Home page, with a quick preview of what was loaded — net position, income, expenses, and your most recent transactions.</p>
+            <p>When it looks right, click <b>View full analysis</b> to move to the charts and full transaction table.</p>
+          </div></div>
+        </div>
+        <div class="accordion-item">
+          <button type="button" class="accordion-trigger" onclick="toggleAccordion(this)">
+            How do the date and year filters work?
+            <svg class="accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="accordion-panel"><div class="accordion-body">
+            <p>At the top of the Analysis page, the Year and Month filters are built from whatever's actually in your data. Choosing one narrows the other down to combinations that exist.</p>
+            <p>Whatever you pick reshapes everything below it — the net position, income and expenses, both charts, and the transaction table.</p>
+          </div></div>
+        </div>
+        <div class="accordion-item">
+          <button type="button" class="accordion-trigger" onclick="toggleAccordion(this)">
+            How does sorting the table work?
+            <svg class="accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="accordion-panel"><div class="accordion-body">
+            <p>Click a column header to sort by it, click again to flip direction, and a third click clears that sort. Clicking another header while one is active adds it as a tiebreaker — small numbers on each header show the sort priority.</p>
+            <p>The table shows 25 transactions at a time, and pages beneath it if there's more.</p>
+          </div></div>
+        </div>
+        <div class="accordion-item">
+          <button type="button" class="accordion-trigger" onclick="toggleAccordion(this)">
+            Is my data uploaded anywhere?
+            <svg class="accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="accordion-panel"><div class="accordion-body">
+            <p>No. Everything runs in your browser — your CSV never leaves your device.</p>
+          </div></div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="app-footer home-footer">
+      <a class="cotworks-link" href="https://crypticot.github.io/cotworks-portfolio/" target="_blank" rel="noopener">Created by COTworks</a>
+    </footer>
+  </section>
+
+  <section id="page-analysis" class="page" hidden>
+    <div class="dashboard">
+      <div class="filters-row" id="filtersRow">
+        <span class="filters-label">Filter by</span>
+        <select id="filterYear" class="filter-select" onchange="onFilterChange('year')"></select>
+        <select id="filterMonth" class="filter-select" onchange="onFilterChange('month')"></select>
+        <select id="currencySelect" class="filter-select" onchange="onCurrencyChange()">
+          <option value="USD">USD ($)</option>
+          <option value="NGN">NGN (&#8358;)</option>
+          <option value="EUR">EUR (&euro;)</option>
+          <option value="GBP">GBP (&pound;)</option>
+          <option value="JPY">JPY (&yen;)</option>
+          <option value="CNY">CNY (&yen;)</option>
+          <option value="INR">INR (&#8377;)</option>
+          <option value="CAD">CAD (CA$)</option>
+          <option value="AUD">AUD (A$)</option>
+          <option value="ZAR">ZAR (R)</option>
+          <option value="KES">KES (KSh)</option>
+          <option value="GHS">GHS (GH&#8373;)</option>
+          <option value="custom">Custom&hellip;</option>
+        </select>
+        <input type="text" id="customCurrencyInput" class="filter-select" maxlength="3" placeholder="e.g. XAF" oninput="onCustomCurrencyInput()" hidden>
+        <button type="button" class="link-btn" id="filterResetBtn">Reset filter</button>
+        <span id="categoryFilterIndicator" class="category-filter-indicator" hidden>
+          <span id="categoryFilterText"></span>
+          <button type="button" id="categoryFilterClearBtn" class="filter-indicator-clear" title="Clear category filter">&times;</button>
+        </span>
+      </div>
+
+      <div class="hero-row">
+        <div class="hero-panel">
+          <p class="hero-label">Net position</p>
+          <p class="hero-number" id="heroNumber">$0.00</p>
+          <p class="hero-sub" id="heroSub">—</p>
+          <div class="hero-chart-wrap"><canvas id="cumulativeChart"></canvas></div>
+        </div>
+        <div class="stat-stack">
+          <div class="stat-card">
+            <p class="stat-label">Income</p>
+            <p class="stat-value income" id="statIncome">$0.00</p>
+          </div>
+          <div class="stat-card">
+            <p class="stat-label">Expenses</p>
+            <p class="stat-value expense" id="statExpense">$0.00</p>
+          </div>
+          <div class="stat-card">
+            <p class="stat-label">Transactions</p>
+            <p class="stat-value" id="statCount">0</p>
+          </div>
+          <div class="stat-card">
+            <p class="stat-label">Average transaction</p>
+            <p class="stat-value" id="statAvg">$0.00</p>
           </div>
         </div>
       </div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th class="num">Amount</th></tr></thead>
-          <tbody id="tableBody"></tbody>
-        </table>
-      </div>
-      <p id="tableEmpty" class="table-empty" hidden>No transactions match your filters.</p>
-    </div>
 
-    <footer class="app-footer">
-      <span id="sourceLabel">—</span>
-      <button id="resetBtn" class="link-btn" type="button">Load a different file</button>
-    </footer>
+      <div class="analysis-row">
+        <div class="panel">
+          <p class="panel-title">Monthly flow</p>
+          <div class="chart-box"><canvas id="monthlyChart"></canvas></div>
+        </div>
+        <div class="panel">
+          <p class="panel-title">Where expenses go</p>
+          <div class="chart-box donut-box"><canvas id="categoryChart"></canvas></div>
+          <div id="categoryLegend" class="legend"></div>
+        </div>
+      </div>
+
+      <div class="panel table-panel">
+        <div class="table-header">
+          <p class="panel-title">Transactions</p>
+          <div class="table-controls">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search description or category">
+            <div class="chip-group" id="typeChips">
+              <button class="chip active" data-type="all" type="button">All</button>
+              <button class="chip" data-type="Income" type="button">Income</button>
+              <button class="chip" data-type="Expense" type="button">Expense</button>
+            </div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-scroll">
+            <table>
+              <thead><tr id="tableHeadRow"></tr></thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <p id="tableEmpty" class="table-empty" hidden>No transactions match your filters.</p>
+        <div id="tablePagination" class="table-pagination"></div>
+      </div>
+
+      <footer class="app-footer">
+        <span id="sourceLabel">—</span>
+        <button id="resetBtn" class="link-btn" type="button">Load a different file</button>
+      </footer>
+    </div>
   </section>
 </div>
 
@@ -309,8 +526,34 @@ const SAMPLE_CSV = `Date,Description,Category,Type,Amount
 2024-06-22,Cloud hosting - AWS,Software Subscriptions,Expense,225
 2024-06-27,Quarterly tax remittance,Taxes,Expense,1350`;
 
-const currencyFmt = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+const CURRENCY_SYMBOLS = { USD: '$', NGN: '\u20a6', EUR: '\u20ac', GBP: '\u00a3', JPY: '\u00a5', CNY: '\u00a5', INR: '\u20b9', CAD: 'CA$', AUD: 'A$', ZAR: 'R', KES: 'KSh', GHS: 'GH\u20b5' };
+const currencyFmt = {
+  symbol: '$',
+  format(amount) {
+    const neg = amount < 0;
+    const num = Math.abs(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return `${neg ? '-' : ''}${this.symbol}${num}`;
+  }
+};
+const PAGE_SIZE = 25;
+const TABLE_COLS = [
+  { key: 'date', label: 'Date' },
+  { key: 'description', label: 'Description' },
+  { key: 'category', label: 'Category' },
+  { key: 'type', label: 'Type' },
+  { key: 'amount', label: 'Amount', num: true }
+];
+
 let currentRows = [];
+let sourceName = '';
+let currentRawText = '';
+let currentAnalysis = null;
+let dateFilter = { year: null, month: null };
+let dateFilteredRows = [];
+let filteredRows = [];
+let categoryFilter = new Set();
+let tableSort = [];
+let currentPage = 1;
 const charts = {};
 
 if (window.Chart) {
@@ -342,6 +585,50 @@ function parseCSVLine(line) {
   return result.map(s => s.trim());
 }
 
+/* ─── FLEXIBLE DATE PARSING (resolves DD/MM/YYYY vs MM/DD/YYYY ambiguity) ── */
+function detectDateConvention(dataLines, dateIdx) {
+  if (dateIdx === -1) return null;
+  let sawDayFirst = false, sawMonthFirst = false;
+  dataLines.forEach(line => {
+    const raw = parseCSVLine(line)[dateIdx];
+    if (!raw) return;
+    const m = String(raw).trim().match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);
+    if (!m) return;
+    const a = parseInt(m[1], 10), b = parseInt(m[2], 10);
+    if (a > 12 && b <= 12) sawDayFirst = true;
+    if (b > 12 && a <= 12) sawMonthFirst = true;
+  });
+  if (sawDayFirst && !sawMonthFirst) return 'DMY';
+  if (sawMonthFirst && !sawDayFirst) return 'MDY';
+  return null; // genuinely ambiguous (every value is 12 or under), or no slash/dash dates found
+}
+
+function parseDateFlexible(raw, convention) {
+  if (!raw) return null;
+  const s = String(raw).trim();
+  // ISO-style: YYYY-MM-DD or YYYY/MM/DD — always unambiguous, year comes first
+  let m = s.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/);
+  if (m) {
+    const d = new Date(+m[1], +m[2] - 1, +m[3]);
+    return isNaN(d.getTime()) ? null : d;
+  }
+  // D/M/Y or M/D/Y with /, - or . separators
+  m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);
+  if (m) {
+    const a = +m[1], b = +m[2], year = +m[3];
+    let day, month;
+    if (a > 12 && b <= 12) { day = a; month = b; }
+    else if (b > 12 && a <= 12) { day = b; month = a; }
+    else if (convention === 'DMY') { day = a; month = b; }
+    else { month = a; day = b; } // default to MM/DD/YYYY when truly ambiguous
+    const d = new Date(year, month - 1, day);
+    return (isNaN(d.getTime()) || d.getMonth() !== month - 1) ? null : d;
+  }
+  // Fallback for anything else (e.g. "Jan 4, 2024") — let the native parser try
+  const d = new Date(s);
+  return isNaN(d.getTime()) ? null : d;
+}
+
 function parseCSV(text) {
   const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter(l => l.trim().length > 0);
   if (lines.length < 2) throw new Error('empty');
@@ -354,6 +641,8 @@ function parseCSV(text) {
   const amountIdx = idx(['amount', 'value']);
   if (dateIdx === -1 || amountIdx === -1) throw new Error('missing_columns');
 
+  const dateConvention = detectDateConvention(lines.slice(1), dateIdx);
+
   const rows = [];
   let skipped = 0;
   for (let i = 1; i < lines.length; i++) {
@@ -362,8 +651,8 @@ function parseCSV(text) {
     const dateRaw = cells[dateIdx];
     const amountRaw = cells[amountIdx];
     const amountNum = parseFloat(String(amountRaw || '').replace(/[^0-9.\-]/g, ''));
-    const date = new Date(dateRaw);
-    if (!dateRaw || isNaN(amountNum) || isNaN(date.getTime())) { skipped++; continue; }
+    const date = parseDateFlexible(dateRaw, dateConvention);
+    if (!dateRaw || isNaN(amountNum) || !date) { skipped++; continue; }
     let type = typeIdx !== -1 ? (cells[typeIdx] || '').trim() : '';
     if (!type) {
       type = amountNum < 0 ? 'Expense' : 'Income';
@@ -391,6 +680,25 @@ function showToast(msg, isError) {
   showToast._t = setTimeout(() => { t.hidden = true; }, 4500);
 }
 
+/* ─── PAGE NAV ─────────────────────────────────────────────────────── */
+function switchPage(name) {
+  if (name === 'analysis' && currentRows.length === 0) {
+    showToast('Upload a CSV first to see the analysis.', true);
+    return;
+  }
+  document.getElementById('page-home').hidden = name !== 'home';
+  document.getElementById('page-analysis').hidden = name !== 'analysis';
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.page === name));
+  if (name === 'analysis') renderAnalysisPage();
+  window.scrollTo(0, 0);
+}
+
+/* ─── HELP ACCORDION ───────────────────────────────────────────────── */
+function toggleAccordion(btn) {
+  btn.closest('.accordion-item').classList.toggle('open');
+}
+
+/* ─── CHARTS ───────────────────────────────────────────────────────── */
 function buildCumulativeChart(rows) {
   const sorted = rows.slice().sort((a, b) => a.date - b.date);
   let running = 0;
@@ -447,7 +755,7 @@ function buildMonthlyChart(rows) {
       },
       scales: {
         x: { grid: { display: false }, ticks: { color: '#948da3', font: { size: 11 } } },
-        y: { grid: { color: '#211d29' }, ticks: { color: '#948da3', font: { size: 11 }, callback: (v) => v >= 1000 ? '$' + (v / 1000) + 'k' : '$' + v } }
+        y: { grid: { color: '#211d29' }, ticks: { color: '#948da3', font: { size: 11 }, callback: (v) => v >= 1000 ? currencyFmt.symbol + (v / 1000) + 'k' : currencyFmt.symbol + v } }
       }
     }
   });
@@ -460,19 +768,31 @@ function buildCategoryChart(rows) {
   let entries = Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
   const palette = ['#8b7ec4', '#c17b68', '#c9a86a', '#6a9fc9', '#7a9c7a', '#a67ab0', '#948da3'];
   let top = entries.slice(0, 6);
+  // sliceCategories[i] lists the raw category name(s) that slice i represents (an 'Other' slice can represent several)
+  let sliceCategories = top.map(e => [e[0]]);
   if (entries.length > 6) {
-    const otherSum = entries.slice(6).reduce((s, e) => s + e[1], 0);
+    const otherEntries = entries.slice(6);
+    const otherSum = otherEntries.reduce((s, e) => s + e[1], 0);
     top.push(['Other', otherSum]);
+    sliceCategories.push(otherEntries.map(e => e[0]));
   }
   const labels = top.map(e => e[0]);
   const data = top.map(e => e[1]);
-  const colors = top.map((_, i) => palette[i % palette.length]);
+  const baseColors = top.map((_, i) => palette[i % palette.length]);
+  const filterActive = categoryFilter.size > 0;
+  const isSliceActive = (i) => sliceCategories[i].every(c => categoryFilter.has(c));
+  const colors = top.map((_, i) => (!filterActive || isSliceActive(i)) ? baseColors[i] : baseColors[i] + '40');
+
   if (charts.category) charts.category.destroy();
   charts.category = new Chart(document.getElementById('categoryChart'), {
     type: 'doughnut',
     data: { labels, datasets: [{ data, backgroundColor: colors, borderColor: '#171420', borderWidth: 2, hoverOffset: 6 }] },
     options: {
       responsive: true, maintainAspectRatio: false, cutout: '68%',
+      onClick: (evt, elements) => {
+        if (!elements.length) return;
+        toggleCategoryFilter(sliceCategories[elements[0].index]);
+      },
       plugins: {
         legend: { display: false },
         tooltip: { backgroundColor: '#1d1927', borderColor: '#2b2735', borderWidth: 1, titleColor: '#ece9f2', bodyColor: '#948da3', padding: 10, cornerRadius: 8, callbacks: { label: (item) => `${item.label}: ${currencyFmt.format(item.parsed)}` } }
@@ -480,55 +800,140 @@ function buildCategoryChart(rows) {
     }
   });
   const legendEl = document.getElementById('categoryLegend');
-  legendEl.innerHTML = top.map((e, i) => `
-    <div class="legend-row">
-      <span class="legend-dot" style="background:${colors[i]}"></span>
+  legendEl.innerHTML = top.map((e, i) => {
+    const active = isSliceActive(i);
+    const cls = ['legend-row', 'legend-clickable', active ? 'legend-active' : '', (filterActive && !active) ? 'legend-dimmed' : ''].filter(Boolean).join(' ');
+    return `
+    <div class="${cls}" data-slice="${i}">
+      <span class="legend-dot" style="background:${baseColors[i]}"></span>
       <span class="legend-name">${escapeHtml(e[0])}</span>
       <span class="legend-value">${currencyFmt.format(e[1])}</span>
-    </div>`).join('');
-}
-
-function renderTable() {
-  const search = document.getElementById('searchInput').value.trim().toLowerCase();
-  const activeType = document.querySelector('.chip.active').dataset.type;
-  let rows = currentRows.filter(r => {
-    if (activeType !== 'all' && r.type !== activeType) return false;
-    if (search && !(r.description.toLowerCase().includes(search) || r.category.toLowerCase().includes(search))) return false;
-    return true;
+    </div>`;
+  }).join('');
+  legendEl.querySelectorAll('.legend-row').forEach(row => {
+    row.addEventListener('click', () => toggleCategoryFilter(sliceCategories[Number(row.dataset.slice)]));
   });
-  rows = rows.slice().sort((a, b) => b.date - a.date);
-  const tbody = document.getElementById('tableBody');
-  const emptyMsg = document.getElementById('tableEmpty');
-  if (rows.length === 0) {
-    tbody.innerHTML = '';
-    emptyMsg.hidden = false;
-  } else {
-    emptyMsg.hidden = true;
-    tbody.innerHTML = rows.map(r => `
-      <tr>
-        <td>${r.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
-        <td>${escapeHtml(r.description)}</td>
-        <td><span class="pill pill-category">${escapeHtml(r.category)}</span></td>
-        <td><span class="pill ${r.type === 'Income' ? 'pill-income' : 'pill-expense'}">${r.type}</span></td>
-        <td class="num ${r.type === 'Income' ? 'amount-income' : 'amount-expense'}">${r.type === 'Income' ? '+' : '-'}${currencyFmt.format(r.amount)}</td>
-      </tr>`).join('');
-  }
 }
 
-function loadData(rows, sourceName) {
-  if (!rows || rows.length === 0) { showToast('No usable rows found. Check that your CSV has date and amount columns.', true); return; }
-  currentRows = rows;
-  document.getElementById('emptyState').hidden = true;
-  document.getElementById('dashboard').hidden = false;
-  document.getElementById('sourceLabel').textContent = sourceName;
-  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-  document.querySelector('.chip[data-type="all"]').classList.add('active');
-  document.getElementById('searchInput').value = '';
+function toggleCategoryFilter(cats) {
+  const allActive = cats.every(c => categoryFilter.has(c));
+  if (allActive) cats.forEach(c => categoryFilter.delete(c));
+  else cats.forEach(c => categoryFilter.add(c));
+  currentPage = 1;
+  renderAnalysisPage();
+}
+
+function applyCategoryFilter(rows) {
+  if (categoryFilter.size === 0) return rows;
+  return rows.filter(r => categoryFilter.has(r.category));
+}
+
+function renderCategoryFilterIndicator() {
+  const el = document.getElementById('categoryFilterIndicator');
+  if (categoryFilter.size === 0) { el.hidden = true; return; }
+  el.hidden = false;
+  document.getElementById('categoryFilterText').textContent = `Category: ${Array.from(categoryFilter).join(', ')}`;
+}
+
+function onCurrencyChange() {
+  const sel = document.getElementById('currencySelect');
+  const customInput = document.getElementById('customCurrencyInput');
+  if (sel.value === 'custom') {
+    customInput.hidden = false;
+    customInput.value = '';
+    customInput.focus();
+    currencyFmt.symbol = '';
+    renderAnalysisPage();
+    return;
+  }
+  customInput.hidden = true;
+  currencyFmt.symbol = CURRENCY_SYMBOLS[sel.value] || '$';
+  renderAnalysisPage();
+}
+
+function onCustomCurrencyInput() {
+  const input = document.getElementById('customCurrencyInput');
+  const code = input.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3);
+  input.value = code;
+  currencyFmt.symbol = code ? code + ' ' : '';
+  renderAnalysisPage();
+}
+
+/* ─── DATE / YEAR FILTERS ──────────────────────────────────────────── */
+function monthName(m) { return new Date(2000, m, 1).toLocaleDateString('en-US', { month: 'long' }); }
+
+function yearsAvailable(monthSel) {
+  const set = new Set();
+  currentRows.forEach(r => { if (monthSel == null || r.date.getMonth() === monthSel) set.add(r.date.getFullYear()); });
+  return Array.from(set).sort((a, b) => a - b);
+}
+function monthsAvailable(yearSel) {
+  const set = new Set();
+  currentRows.forEach(r => { if (yearSel == null || r.date.getFullYear() === yearSel) set.add(r.date.getMonth()); });
+  return Array.from(set).sort((a, b) => a - b);
+}
+
+function renderFilters() {
+  const years = yearsAvailable(dateFilter.month);
+  const months = monthsAvailable(dateFilter.year);
+  const yEl = document.getElementById('filterYear');
+  const mEl = document.getElementById('filterMonth');
+  yEl.innerHTML = '<option value="">All years</option>' + years.map(y => `<option value="${y}">${y}</option>`).join('');
+  mEl.innerHTML = '<option value="">All months</option>' + months.map(m => `<option value="${m}">${monthName(m)}</option>`).join('');
+  yEl.value = dateFilter.year == null ? '' : String(dateFilter.year);
+  mEl.value = dateFilter.month == null ? '' : String(dateFilter.month);
+}
+
+function onFilterChange(which) {
+  const yEl = document.getElementById('filterYear');
+  const mEl = document.getElementById('filterMonth');
+  if (which === 'year') dateFilter.year = yEl.value === '' ? null : parseInt(yEl.value, 10);
+  else dateFilter.month = mEl.value === '' ? null : parseInt(mEl.value, 10);
+  renderAnalysisPage();
+}
+
+function applyDateFilter(rows) {
+  return rows.filter(r =>
+    (dateFilter.year == null || r.date.getFullYear() === dateFilter.year) &&
+    (dateFilter.month == null || r.date.getMonth() === dateFilter.month)
+  );
+}
+
+/* ─── ANALYSIS PAGE ────────────────────────────────────────────────── */
+function renderAnalysisPage() {
+  if (currentRows.length === 0) return;
+  renderFilters();
+  renderCategoryFilterIndicator();
+  dateFilteredRows = applyDateFilter(currentRows);
+  filteredRows = applyCategoryFilter(dateFilteredRows);
+  const rows = filteredRows;
+
+  document.getElementById('sourceLabel').textContent = `${sourceName} — ${currentRows.length} transactions`;
+
+  const heroNumberEl = document.getElementById('heroNumber');
+  if (rows.length === 0) {
+    heroNumberEl.textContent = currencyFmt.format(0);
+    heroNumberEl.classList.remove('negative');
+    document.getElementById('heroSub').textContent = categoryFilter.size > 0 ? 'No transactions match the selected categories.' : 'No transactions match this filter.';
+    document.getElementById('statIncome').textContent = currencyFmt.format(0);
+    document.getElementById('statExpense').textContent = currencyFmt.format(0);
+    document.getElementById('statCount').textContent = '0';
+    document.getElementById('statAvg').textContent = currencyFmt.format(0);
+    ['cumulative', 'monthly'].forEach(k => { if (charts[k]) { charts[k].destroy(); charts[k] = null; } });
+    if (window.Chart && dateFilteredRows.length > 0) {
+      buildCategoryChart(dateFilteredRows);
+    } else {
+      if (charts.category) { charts.category.destroy(); charts.category = null; }
+      document.getElementById('categoryLegend').innerHTML = '';
+    }
+    currentPage = 1;
+    renderTable();
+    return;
+  }
 
   const income = rows.filter(r => r.type === 'Income').reduce((s, r) => s + r.amount, 0);
   const expense = rows.filter(r => r.type === 'Expense').reduce((s, r) => s + r.amount, 0);
   const net = income - expense;
-  const heroNumberEl = document.getElementById('heroNumber');
   heroNumberEl.textContent = currencyFmt.format(net);
   heroNumberEl.classList.toggle('negative', net < 0);
   const lastDate = rows.reduce((max, r) => (r.date > max ? r.date : max), rows[0].date);
@@ -538,15 +943,320 @@ function loadData(rows, sourceName) {
   document.getElementById('statCount').textContent = rows.length;
   document.getElementById('statAvg').textContent = currencyFmt.format((income + expense) / rows.length);
 
-  renderTable();
-
   if (window.Chart) {
     buildCumulativeChart(rows);
     buildMonthlyChart(rows);
-    buildCategoryChart(rows);
+    buildCategoryChart(dateFilteredRows);
   } else {
     showToast('Charts could not load (Chart.js unreachable). Table still works.', true);
   }
+
+  currentPage = 1;
+  renderTable();
+}
+
+/* ─── TABLE: SEARCH + SORT + PAGINATION ────────────────────────────── */
+function getSortValue(r, key) {
+  switch (key) {
+    case 'date': return r.date.getTime();
+    case 'description': return r.description.toLowerCase();
+    case 'category': return r.category.toLowerCase();
+    case 'type': return r.type;
+    case 'amount': return r.amount;
+  }
+}
+
+function sortTable(key) {
+  const idx = tableSort.findIndex(s => s.key === key);
+  if (idx === -1) tableSort.unshift({ key, dir: 'asc' });
+  else if (tableSort[idx].dir === 'asc') tableSort[idx].dir = 'desc';
+  else tableSort.splice(idx, 1);
+  currentPage = 1;
+  renderTable();
+}
+
+function renderTableHead() {
+  const tr = document.getElementById('tableHeadRow');
+  tr.innerHTML = '<th style="width:2.6rem">#</th>' + TABLE_COLS.map(col => {
+    const sIdx = tableSort.findIndex(s => s.key === col.key);
+    let mark = '';
+    if (sIdx >= 0) {
+      const arrow = tableSort[sIdx].dir === 'asc' ? '&#9650;' : '&#9660;';
+      const rank = tableSort.length > 1 ? `<span class="sort-rank">${sIdx + 1}</span>` : '';
+      mark = `<span class="sort-mark">${arrow}${rank}</span>`;
+    }
+    return `<th class="sortable${col.num ? ' num' : ''}" onclick="sortTable('${col.key}')">${col.label}${mark}</th>`;
+  }).join('');
+}
+
+function renderPagination(total, totalPages, startIdx, count) {
+  const el = document.getElementById('tablePagination');
+  if (total === 0) { el.innerHTML = ''; return; }
+  const from = startIdx + 1;
+  const to = startIdx + count;
+  el.innerHTML = `
+    <span class="pagination-info">${from}&ndash;${to} of ${total}</span>
+    <div class="pagination-btns">
+      <button type="button" class="btn btn-ghost btn-sm" id="prevPageBtn" ${currentPage <= 1 ? 'disabled' : ''}>&lsaquo; Prev</button>
+      <span class="pagination-page">Page ${currentPage} of ${totalPages}</span>
+      <button type="button" class="btn btn-ghost btn-sm" id="nextPageBtn" ${currentPage >= totalPages ? 'disabled' : ''}>Next &rsaquo;</button>
+    </div>`;
+  const prevBtn = document.getElementById('prevPageBtn');
+  const nextBtn = document.getElementById('nextPageBtn');
+  if (prevBtn) prevBtn.addEventListener('click', () => { currentPage--; renderTable(); });
+  if (nextBtn) nextBtn.addEventListener('click', () => { currentPage++; renderTable(); });
+}
+
+function renderTable() {
+  renderTableHead();
+  const search = document.getElementById('searchInput').value.trim().toLowerCase();
+  const activeType = document.querySelector('.chip.active').dataset.type;
+  let rows = (filteredRows || []).filter(r => {
+    if (activeType !== 'all' && r.type !== activeType) return false;
+    if (search && !(r.description.toLowerCase().includes(search) || r.category.toLowerCase().includes(search))) return false;
+    return true;
+  });
+
+  if (tableSort.length) {
+    rows = rows.slice().sort((a, b) => {
+      for (const s of tableSort) {
+        const va = getSortValue(a, s.key);
+        const vb = getSortValue(b, s.key);
+        let cmp = typeof va === 'string' ? va.localeCompare(vb) : va - vb;
+        if (s.dir === 'desc') cmp = -cmp;
+        if (cmp !== 0) return cmp;
+      }
+      return 0;
+    });
+  } else {
+    rows = rows.slice().sort((a, b) => b.date - a.date);
+  }
+
+  const total = rows.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if (currentPage > totalPages) currentPage = totalPages;
+  if (currentPage < 1) currentPage = 1;
+  const startIdx = (currentPage - 1) * PAGE_SIZE;
+  const pageRows = rows.slice(startIdx, startIdx + PAGE_SIZE);
+
+  const tbody = document.getElementById('tableBody');
+  const emptyMsg = document.getElementById('tableEmpty');
+  if (total === 0) {
+    tbody.innerHTML = '';
+    emptyMsg.hidden = false;
+  } else {
+    emptyMsg.hidden = true;
+    tbody.innerHTML = pageRows.map((r, i) => `
+      <tr>
+        <td class="num muted">${startIdx + i + 1}</td>
+        <td>${r.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
+        <td>${escapeHtml(r.description)}</td>
+        <td><span class="pill pill-category">${escapeHtml(r.category)}</span></td>
+        <td><span class="pill ${r.type === 'Income' ? 'pill-income' : 'pill-expense'}">${r.type}</span></td>
+        <td class="num ${r.type === 'Income' ? 'amount-income' : 'amount-expense'}">${r.type === 'Income' ? '+' : '-'}${currencyFmt.format(r.amount)}</td>
+      </tr>`).join('');
+  }
+  renderPagination(total, totalPages, startIdx, pageRows.length);
+}
+
+/* ─── HOME PREVIEW ─────────────────────────────────────────────────── */
+function renderHomePreview() {
+  document.getElementById('emptyState').hidden = true;
+  document.getElementById('homePreview').hidden = false;
+  document.getElementById('previewSourceLabel').textContent = sourceName;
+  document.getElementById('previewCount').textContent = `${currentRows.length} transaction${currentRows.length === 1 ? '' : 's'}`;
+
+  const times = currentRows.map(r => r.date.getTime());
+  const minDate = new Date(Math.min(...times));
+  const maxDate = new Date(Math.max(...times));
+  document.getElementById('previewRange').textContent = `${minDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} \u2013 ${maxDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+
+  const income = currentRows.filter(r => r.type === 'Income').reduce((s, r) => s + r.amount, 0);
+  const expense = currentRows.filter(r => r.type === 'Expense').reduce((s, r) => s + r.amount, 0);
+  const net = income - expense;
+  const previewNetEl = document.getElementById('previewNet');
+  previewNetEl.textContent = currencyFmt.format(net);
+  previewNetEl.classList.toggle('negative', net < 0);
+  document.getElementById('previewIncome').textContent = currencyFmt.format(income);
+  document.getElementById('previewExpense').textContent = currencyFmt.format(expense);
+}
+
+/* ─── VALIDATION PREVIEW ───────────────────────────────────────────── */
+function dateShape(raw) {
+  return String(raw).replace(/[0-9]/g, '#');
+}
+
+function analyzeCSV(text) {
+  const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').filter(l => l.trim().length > 0);
+  if (lines.length < 2) {
+    return { header: [], dateIdx: -1, descIdx: -1, catIdx: -1, typeIdx: -1, amountIdx: -1, sampleRows: [], allRows: [], dataRowCount: 0 };
+  }
+  const header = parseCSVLine(lines[0]).map(h => h.toLowerCase());
+  const idx = (names) => { for (const n of names) { const i = header.indexOf(n); if (i !== -1) return i; } return -1; };
+  const dateIdx = idx(['date', 'transaction date']);
+  const descIdx = idx(['description', 'desc', 'memo', 'details', 'narration']);
+  const catIdx = idx(['category', 'tag']);
+  const typeIdx = idx(['type', 'direction']);
+  const amountIdx = idx(['amount', 'value']);
+
+  const dataLines = lines.slice(1).filter(l => parseCSVLine(l).some(c => c.trim() !== ''));
+  const dateConvention = detectDateConvention(dataLines, dateIdx);
+
+  // Work out the majority date "shape" (digits replaced with #) so odd-format rows can be flagged.
+  const shapeCounts = new Map();
+  dataLines.forEach(line => {
+    if (dateIdx === -1) return;
+    const raw = parseCSVLine(line)[dateIdx];
+    if (!raw) return;
+    if (!parseDateFlexible(raw, dateConvention)) return;
+    const shape = dateShape(raw);
+    shapeCounts.set(shape, (shapeCounts.get(shape) || 0) + 1);
+  });
+  let majorityShape = null, majorityCount = 0;
+  shapeCounts.forEach((count, shape) => { if (count > majorityCount) { majorityCount = count; majorityShape = shape; } });
+
+  const allRows = dataLines.map((line, i) => {
+    const cells = parseCSVLine(line);
+    const rowNum = i + 2; // +1 for header row, +1 for 1-indexing
+    const issues = [];
+
+    const dateRaw = dateIdx !== -1 ? cells[dateIdx] : undefined;
+    const descRaw = descIdx !== -1 ? cells[descIdx] : undefined;
+    const catRaw = catIdx !== -1 ? cells[catIdx] : undefined;
+    const typeRaw = typeIdx !== -1 ? cells[typeIdx] : undefined;
+    const amountRaw = amountIdx !== -1 ? cells[amountIdx] : undefined;
+
+    let dateParsed = null;
+    if (dateIdx === -1) issues.push('No date column found in this file');
+    else if (!dateRaw) issues.push('Missing date value');
+    else {
+      const d = parseDateFlexible(dateRaw, dateConvention);
+      if (!d) issues.push(`Unrecognized date format: "${dateRaw}"`);
+      else {
+        dateParsed = d;
+        if (majorityShape && dateShape(dateRaw) !== majorityShape) {
+          issues.push(`Date format differs from most other rows: "${dateRaw}"`);
+        }
+      }
+    }
+
+    let amountNum = null;
+    if (amountIdx === -1) issues.push('No amount column found in this file');
+    else if (!amountRaw) issues.push('Missing amount value');
+    else {
+      const n = parseFloat(String(amountRaw).replace(/[^0-9.\-]/g, ''));
+      if (isNaN(n)) issues.push(`Unrecognized amount format: "${amountRaw}"`);
+      else amountNum = n;
+    }
+
+    if (header.length && cells.length !== header.length) {
+      issues.push(`Row has ${cells.length} column(s), expected ${header.length} — columns may be misaligned`);
+    }
+
+    let type = typeRaw ? typeRaw.trim() : '';
+    if (!type) type = (amountNum != null && amountNum < 0) ? 'Expense' : 'Income';
+    else {
+      const t = type.toLowerCase();
+      type = (t.startsWith('exp') || t === 'debit' || t === '-') ? 'Expense' : 'Income';
+    }
+
+    return {
+      rowNum, issues,
+      raw: { date: dateRaw, description: descRaw, category: catRaw, type: typeRaw, amount: amountRaw },
+      parsed: {
+        date: dateParsed, description: descRaw || 'Untitled', category: catRaw || 'Uncategorized',
+        type, amount: amountNum != null ? Math.abs(amountNum) : null
+      }
+    };
+  });
+
+  return { header, dateIdx, descIdx, catIdx, typeIdx, amountIdx, sampleRows: allRows.slice(0, 5), allRows, dataRowCount: allRows.length };
+}
+
+function renderValidationPreview(text) {
+  const analysis = analyzeCSV(text);
+  currentAnalysis = analysis;
+
+  const fieldLabel = { date: 'Date', description: 'Description', category: 'Category', type: 'Type', amount: 'Amount' };
+  const found = [], notFound = [];
+  [['date', analysis.dateIdx], ['description', analysis.descIdx], ['category', analysis.catIdx], ['type', analysis.typeIdx], ['amount', analysis.amountIdx]]
+    .forEach(([key, i]) => { (i === -1 ? notFound : found).push(fieldLabel[key]); });
+  document.getElementById('validationColumnNote').textContent = notFound.length
+    ? `Detected columns: ${found.join(', ')}. Not found: ${notFound.join(', ')} — defaults will be used where possible.`
+    : `Detected columns: ${found.join(', ')}. Showing the first ${analysis.sampleRows.length} row(s) as raw data vs. how they'll be read.`;
+
+  const tbody = document.getElementById('validationTableBody');
+  tbody.innerHTML = analysis.sampleRows.map(r => {
+    const dateIssue = r.issues.some(i => i.toLowerCase().includes('date'));
+    const amountIssue = r.issues.some(i => i.toLowerCase().includes('amount'));
+    const colIssue = r.issues.some(i => i.toLowerCase().includes('column'));
+    const dateDisplay = r.parsed.date ? r.parsed.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+    const amountDisplay = r.parsed.amount != null ? currencyFmt.format(r.parsed.amount) : '—';
+    return `
+      <tr class="${colIssue ? 'row-mismatch' : ''}">
+        <td class="num muted">${r.rowNum - 1}</td>
+        <td class="${dateIssue ? 'val-mismatch' : ''}"><div class="val-raw">${escapeHtml(r.raw.date || '—')}</div><div class="val-parsed">${dateDisplay}</div></td>
+        <td><div class="val-raw">${escapeHtml(r.raw.description || '—')}</div><div class="val-parsed">${escapeHtml(r.parsed.description)}</div></td>
+        <td><div class="val-raw">${escapeHtml(r.raw.category || '—')}</div><div class="val-parsed">${escapeHtml(r.parsed.category)}</div></td>
+        <td><div class="val-raw">${escapeHtml(r.raw.type || '—')}</div><div class="val-parsed">${escapeHtml(r.parsed.type)}</div></td>
+        <td class="num ${amountIssue ? 'val-mismatch' : ''}"><div class="val-raw">${escapeHtml(r.raw.amount || '—')}</div><div class="val-parsed">${amountDisplay}</div></td>
+      </tr>`;
+  }).join('');
+
+  const errorRows = analysis.allRows.filter(r => r.issues.length > 0);
+  const errorsBlock = document.getElementById('validationErrors');
+  const viewBtn = document.getElementById('viewAnalysisBtn');
+  if (errorRows.length > 0) {
+    errorsBlock.hidden = false;
+    document.getElementById('validationErrorCount').textContent = errorRows.length;
+    document.getElementById('validationErrorList').innerHTML = errorRows.map(r =>
+      `<li><span class="err-row">Row ${r.rowNum}:</span> ${r.issues.map(escapeHtml).join('; ')}</li>`
+    ).join('');
+    viewBtn.disabled = true;
+    viewBtn.title = 'Fix the issues below and re-upload your file to continue.';
+  } else {
+    errorsBlock.hidden = true;
+    document.getElementById('validationErrorList').innerHTML = '';
+    viewBtn.disabled = false;
+    viewBtn.title = '';
+  }
+}
+
+/* ─── LOAD / RESET ─────────────────────────────────────────────────── */
+function onDataLoaded(rows, name, rawText) {
+  currentRows = rows;
+  sourceName = name;
+  currentRawText = rawText;
+  dateFilter = { year: null, month: null };
+  categoryFilter = new Set();
+  tableSort = [];
+  currentPage = 1;
+  switchPage('home');
+  renderHomePreview();
+  renderValidationPreview(rawText);
+}
+
+function loadData(rows, name, rawText) {
+  if (!rows || rows.length === 0) { showToast('No usable rows found. Check that your CSV has date and amount columns.', true); return; }
+  onDataLoaded(rows, name, rawText);
+}
+
+function resetData() {
+  currentRows = [];
+  sourceName = '';
+  currentRawText = '';
+  currentAnalysis = null;
+  dateFilteredRows = [];
+  filteredRows = [];
+  categoryFilter = new Set();
+  tableSort = [];
+  currentPage = 1;
+  document.getElementById('homePreview').hidden = true;
+  document.getElementById('emptyState').hidden = false;
+  document.getElementById('viewAnalysisBtn').disabled = false;
+  document.getElementById('viewAnalysisBtn').title = '';
+  document.getElementById('validationErrors').hidden = true;
+  switchPage('home');
 }
 
 function handleFile(file) {
@@ -555,7 +1265,7 @@ function handleFile(file) {
   reader.onload = (e) => {
     try {
       const { rows, skipped } = parseCSV(e.target.result);
-      loadData(rows, file.name);
+      loadData(rows, file.name, e.target.result);
       if (rows.length > 0 && skipped > 0) {
         showToast(`Loaded ${rows.length} rows — skipped ${skipped} missing a date or amount.`, false);
       }
@@ -582,7 +1292,7 @@ function downloadSample() {
 document.getElementById('downloadSampleBtn').addEventListener('click', downloadSample);
 document.getElementById('loadSampleBtn').addEventListener('click', () => {
   const { rows } = parseCSV(SAMPLE_CSV);
-  loadData(rows, 'sample-transactions.csv');
+  loadData(rows, 'sample-transactions.csv', SAMPLE_CSV);
 });
 document.getElementById('uploadBtn').addEventListener('click', () => document.getElementById('fileInput').click());
 document.getElementById('fileInput').addEventListener('change', (e) => {
@@ -590,16 +1300,23 @@ document.getElementById('fileInput').addEventListener('change', (e) => {
   if (f) handleFile(f);
   e.target.value = '';
 });
-document.getElementById('resetBtn').addEventListener('click', () => {
-  document.getElementById('dashboard').hidden = true;
-  document.getElementById('emptyState').hidden = false;
-  currentRows = [];
+document.getElementById('resetBtn').addEventListener('click', resetData);
+document.getElementById('previewResetBtn').addEventListener('click', resetData);
+document.getElementById('viewAnalysisBtn').addEventListener('click', () => switchPage('analysis'));
+document.getElementById('filterResetBtn').addEventListener('click', () => {
+  dateFilter = { year: null, month: null };
+  renderAnalysisPage();
 });
-document.getElementById('searchInput').addEventListener('input', renderTable);
+document.getElementById('categoryFilterClearBtn').addEventListener('click', () => {
+  categoryFilter.clear();
+  renderAnalysisPage();
+});
+document.getElementById('searchInput').addEventListener('input', () => { currentPage = 1; renderTable(); });
 document.querySelectorAll('.chip').forEach(chip => {
   chip.addEventListener('click', () => {
     document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
     chip.classList.add('active');
+    currentPage = 1;
     renderTable();
   });
 });
