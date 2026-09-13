@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ledger — CSV data explorer</title>
+<title>Ledger: CSV data explorer</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%230e0c13'/%3E%3Cpath d='M12 3.5 18.5 12 12 20.5 5.5 12 12 3.5Z' fill='%238b7ec4'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -100,9 +100,10 @@
 
   .filters-row{display:flex; align-items:center; gap:0.7rem; flex-wrap:wrap; margin-bottom:1.3rem;}
   .filters-label{color:var(--text-muted); font-size:0.85rem;}
-  select.filter-select{background:var(--bg-soft); border:1px solid var(--border); border-radius:var(--radius-sm); padding:0.5rem 0.7rem; color:var(--text); font-family:var(--font-body); font-size:0.85rem; min-width:130px; cursor:pointer;}
-  select.filter-select:focus{outline:none; border-color:var(--accent-dim);}
+  .filter-select{background:var(--bg-soft); border:1px solid var(--border); border-radius:var(--radius-sm); padding:0.5rem 0.7rem; color:var(--text); font-family:var(--font-body); font-size:0.85rem; min-width:130px; cursor:pointer;}
+  .filter-select:focus{outline:none; border-color:var(--accent-dim);}
   #customCurrencyInput{min-width:70px; width:70px; text-transform:uppercase; cursor:text;}
+  #customCurrencyInput::placeholder{color:var(--text-faint);}
 
   .hero-row{display:grid; grid-template-columns:1.6fr 1fr; gap:1.2rem;}
   .hero-panel{position:relative; overflow:hidden; background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:1.8rem 1.9rem 0; min-height:300px; display:flex; flex-direction:column;}
@@ -121,6 +122,7 @@
   .stat-value.negative{color:var(--expense);}
 
   .analysis-row{display:grid; grid-template-columns:1.3fr 1fr; gap:1.2rem;}
+  .donut-row{display:grid; grid-template-columns:1fr 1fr; gap:1.2rem;}
   .panel{background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:1.5rem 1.6rem; display:flex; flex-direction:column;}
   .panel-title{font-family:var(--font-display); font-size:1.05rem; font-weight:600; margin:0 0 1rem;}
   .chart-box{position:relative; height:220px; flex:1 1 auto; min-height:220px;}
@@ -165,7 +167,7 @@
   .pagination-page{white-space:nowrap;}
 
   .app-footer{display:flex; justify-content:space-between; align-items:center; color:var(--text-faint); font-size:0.8rem; padding-top:0.3rem; flex-wrap:wrap; gap:0.6rem;}
-  .home-footer{justify-content:flex-end; margin-top:1.6rem;}
+  .home-footer{justify-content:center; margin-top:1.6rem;}
   .cotworks-link{color:var(--text-faint); font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; text-decoration:none;}
   .cotworks-link:hover{color:var(--accent);}
 
@@ -214,11 +216,12 @@
   .legend-active{background:var(--accent-soft);}
   .legend-dimmed{opacity:0.4;}
   .category-filter-indicator{display:inline-flex; align-items:center; gap:0.5rem; background:var(--accent-soft); color:var(--accent); border-radius:999px; padding:0.4rem 0.5rem 0.4rem 0.9rem; font-size:0.8rem;}
+  .category-filter-indicator[hidden]{display:none;}
   .filter-indicator-clear{background:none; border:none; color:var(--accent); font-size:1rem; line-height:1; cursor:pointer; padding:0.1rem 0.3rem;}
   .filter-indicator-clear:hover{color:var(--text);}
 
   @media (max-width:880px){
-    .hero-row, .analysis-row{grid-template-columns:1fr;}
+    .hero-row, .analysis-row, .donut-row{grid-template-columns:1fr;}
     .preview-stats{grid-template-columns:1fr 1fr;}
   }
   @media (max-width:520px){
@@ -276,7 +279,7 @@
 
     <section id="homePreview" class="home-preview" hidden>
       <p class="preview-status">
-        <span id="previewSourceLabel">—</span> · <span id="previewCount">0 transactions</span> · <span id="previewRange">—</span>
+        <span id="previewSourceLabel">–</span> · <span id="previewCount">0 transactions</span> · <span id="previewRange">–</span>
       </p>
       <div class="preview-stats">
         <div class="stat-card">
@@ -294,7 +297,7 @@
       </div>
       <div class="panel">
         <p class="panel-title">How we're reading your file</p>
-        <p class="panel-sub" id="validationColumnNote">—</p>
+        <p class="panel-sub" id="validationColumnNote">–</p>
         <div class="table-wrap">
           <table class="validation-table">
             <thead><tr><th>#</th><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th class="num">Amount</th></tr></thead>
@@ -302,7 +305,7 @@
           </table>
         </div>
         <div class="validation-errors" id="validationErrors" hidden>
-          <p class="validation-errors-title">&#9888; <span id="validationErrorCount">0</span> issue(s) found across your file &mdash; fix them and re-upload to continue.</p>
+          <p class="validation-errors-title">&#9888; <span id="validationErrorCount">0</span> issue(s) found across your file. Fix them and re-upload to continue.</p>
           <ul id="validationErrorList" class="validation-error-list"></ul>
         </div>
       </div>
@@ -321,8 +324,8 @@
             <svg class="accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <div class="accordion-panel"><div class="accordion-body">
-            <p>A header row plus columns for <b>date</b>, <b>description</b>, <b>category</b>, <b>type</b>, and <b>amount</b> work best. Only date and amount are required — the rest are filled in with sensible defaults if missing.</p>
-            <p>If there's no type column, a negative or positive amount decides whether a row counts as income or an expense.</p>
+            <p>A header row plus columns for <b>date</b>, <b>description</b>, <b>category</b>, <b>type</b>, and <b>amount</b> work best. Only date and amount are required; the rest are filled in with sensible defaults if missing.</p>
+            <p>Dates can be day-first (31/01/2024) or month-first (01/31/2024): the app looks at your whole file to figure out which one you're using, so stay consistent within a single file. If there's no type column, a negative or positive amount decides whether a row counts as income or an expense.</p>
           </div></div>
         </div>
         <div class="accordion-item">
@@ -331,8 +334,8 @@
             <svg class="accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <div class="accordion-panel"><div class="accordion-body">
-            <p>You'll stay right here on the Home page, with a quick preview of what was loaded — net position, income, expenses, and your most recent transactions.</p>
-            <p>When it looks right, click <b>View full analysis</b> to move to the charts and full transaction table.</p>
+            <p>You'll stay right here on the Home page, with a quick preview: net position, income, expenses, and a side-by-side look at your first few rows (raw values next to how they were interpreted).</p>
+            <p>If anything looks off (a date format, a stray column, a blank amount), it's listed right below that comparison and <b>View full analysis</b> stays disabled until you fix the file and re-upload. Once it's clean, that button takes you to the charts and full transaction table.</p>
           </div></div>
         </div>
         <div class="accordion-item">
@@ -342,7 +345,27 @@
           </button>
           <div class="accordion-panel"><div class="accordion-body">
             <p>At the top of the Analysis page, the Year and Month filters are built from whatever's actually in your data. Choosing one narrows the other down to combinations that exist.</p>
-            <p>Whatever you pick reshapes everything below it — the net position, income and expenses, both charts, and the transaction table.</p>
+            <p>Whatever you pick reshapes everything below it: the net position, income and expenses, both time-based charts, and the transaction table.</p>
+          </div></div>
+        </div>
+        <div class="accordion-item">
+          <button type="button" class="accordion-trigger" onclick="toggleAccordion(this)">
+            Can I filter by category?
+            <svg class="accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="accordion-panel"><div class="accordion-body">
+            <p>Yes. Click a slice on either donut chart, or its matching row in the legend, and the whole page filters down to that category: the net position, both time-based charts, and the table. Click it again to remove it, and you can select more than one category at once from either chart.</p>
+            <p>A small "Category:" pill appears next to the other filters whenever one's active, with a &times; to clear it. The donut charts themselves always show every category so you can keep adding or swapping selections without losing your place.</p>
+          </div></div>
+        </div>
+        <div class="accordion-item">
+          <button type="button" class="accordion-trigger" onclick="toggleAccordion(this)">
+            Can I change the currency symbol?
+            <svg class="accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="accordion-panel"><div class="accordion-body">
+            <p>Yes, from the dropdown next to the other Analysis filters. It only changes how amounts are displayed (which symbol is shown); it doesn't convert the underlying numbers, since there's no live exchange rate behind it.</p>
+            <p>Don't see your currency listed? Choose "Custom..." and type in a 3-letter code (like GHS or XAF) to use as the prefix instead.</p>
           </div></div>
         </div>
         <div class="accordion-item">
@@ -351,7 +374,7 @@
             <svg class="accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <div class="accordion-panel"><div class="accordion-body">
-            <p>Click a column header to sort by it, click again to flip direction, and a third click clears that sort. Clicking another header while one is active adds it as a tiebreaker — small numbers on each header show the sort priority.</p>
+            <p>Click a column header to sort by it, click again to flip direction, and a third click clears that sort. Clicking another header while one is active adds it as a tiebreaker: small numbers on each header show the sort priority.</p>
             <p>The table shows 25 transactions at a time, and pages beneath it if there's more.</p>
           </div></div>
         </div>
@@ -361,7 +384,7 @@
             <svg class="accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <div class="accordion-panel"><div class="accordion-body">
-            <p>No. Everything runs in your browser — your CSV never leaves your device.</p>
+            <p>No. Everything runs in your browser, and your CSV never leaves your device.</p>
           </div></div>
         </div>
       </div>
@@ -405,7 +428,7 @@
         <div class="hero-panel">
           <p class="hero-label">Net position</p>
           <p class="hero-number" id="heroNumber">$0.00</p>
-          <p class="hero-sub" id="heroSub">—</p>
+          <p class="hero-sub" id="heroSub">–</p>
           <div class="hero-chart-wrap"><canvas id="cumulativeChart"></canvas></div>
         </div>
         <div class="stat-stack">
@@ -428,15 +451,21 @@
         </div>
       </div>
 
-      <div class="analysis-row">
-        <div class="panel">
-          <p class="panel-title">Monthly flow</p>
-          <div class="chart-box"><canvas id="monthlyChart"></canvas></div>
-        </div>
+      <div class="panel">
+        <p class="panel-title">Monthly flow</p>
+        <div class="chart-box"><canvas id="monthlyChart"></canvas></div>
+      </div>
+
+      <div class="analysis-row donut-row">
         <div class="panel">
           <p class="panel-title">Where expenses go</p>
           <div class="chart-box donut-box"><canvas id="categoryChart"></canvas></div>
           <div id="categoryLegend" class="legend"></div>
+        </div>
+        <div class="panel">
+          <p class="panel-title">Where income comes from</p>
+          <div class="chart-box donut-box"><canvas id="incomeCategoryChart"></canvas></div>
+          <div id="incomeCategoryLegend" class="legend"></div>
         </div>
       </div>
 
@@ -465,7 +494,7 @@
       </div>
 
       <footer class="app-footer">
-        <span id="sourceLabel">—</span>
+        <span id="sourceLabel">–</span>
         <button id="resetBtn" class="link-btn" type="button">Load a different file</button>
       </footer>
     </div>
@@ -606,7 +635,7 @@ function detectDateConvention(dataLines, dateIdx) {
 function parseDateFlexible(raw, convention) {
   if (!raw) return null;
   const s = String(raw).trim();
-  // ISO-style: YYYY-MM-DD or YYYY/MM/DD — always unambiguous, year comes first
+  // ISO-style: YYYY-MM-DD or YYYY/MM/DD (always unambiguous, year comes first)
   let m = s.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/);
   if (m) {
     const d = new Date(+m[1], +m[2] - 1, +m[3]);
@@ -624,7 +653,7 @@ function parseDateFlexible(raw, convention) {
     const d = new Date(year, month - 1, day);
     return (isNaN(d.getTime()) || d.getMonth() !== month - 1) ? null : d;
   }
-  // Fallback for anything else (e.g. "Jan 4, 2024") — let the native parser try
+  // Fallback for anything else (e.g. "Jan 4, 2024"); let the native parser try
   const d = new Date(s);
   return isNaN(d.getTime()) ? null : d;
 }
@@ -761,12 +790,15 @@ function buildMonthlyChart(rows) {
   });
 }
 
-function buildCategoryChart(rows) {
-  const expenseRows = rows.filter(r => r.type === 'Expense');
+function buildCategoryChart(rows, opts) {
+  const { txType, canvasId, legendId, chartKey } = opts;
+  const typeRows = rows.filter(r => r.type === txType);
   const map = new Map();
-  expenseRows.forEach(r => { map.set(r.category, (map.get(r.category) || 0) + r.amount); });
+  typeRows.forEach(r => { map.set(r.category, (map.get(r.category) || 0) + r.amount); });
   let entries = Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
-  const palette = ['#8b7ec4', '#c17b68', '#c9a86a', '#6a9fc9', '#7a9c7a', '#a67ab0', '#948da3'];
+  const palette = txType === 'Income'
+    ? ['#74aa8f', '#6a9fc9', '#c9a86a', '#8b7ec4', '#a67ab0', '#c17b68', '#948da3']
+    : ['#8b7ec4', '#c17b68', '#c9a86a', '#6a9fc9', '#7a9c7a', '#a67ab0', '#948da3'];
   let top = entries.slice(0, 6);
   // sliceCategories[i] lists the raw category name(s) that slice i represents (an 'Other' slice can represent several)
   let sliceCategories = top.map(e => [e[0]]);
@@ -783,8 +815,8 @@ function buildCategoryChart(rows) {
   const isSliceActive = (i) => sliceCategories[i].every(c => categoryFilter.has(c));
   const colors = top.map((_, i) => (!filterActive || isSliceActive(i)) ? baseColors[i] : baseColors[i] + '40');
 
-  if (charts.category) charts.category.destroy();
-  charts.category = new Chart(document.getElementById('categoryChart'), {
+  if (charts[chartKey]) charts[chartKey].destroy();
+  charts[chartKey] = new Chart(document.getElementById(canvasId), {
     type: 'doughnut',
     data: { labels, datasets: [{ data, backgroundColor: colors, borderColor: '#171420', borderWidth: 2, hoverOffset: 6 }] },
     options: {
@@ -799,7 +831,7 @@ function buildCategoryChart(rows) {
       }
     }
   });
-  const legendEl = document.getElementById('categoryLegend');
+  const legendEl = document.getElementById(legendId);
   legendEl.innerHTML = top.map((e, i) => {
     const active = isSliceActive(i);
     const cls = ['legend-row', 'legend-clickable', active ? 'legend-active' : '', (filterActive && !active) ? 'legend-dimmed' : ''].filter(Boolean).join(' ');
@@ -813,6 +845,14 @@ function buildCategoryChart(rows) {
   legendEl.querySelectorAll('.legend-row').forEach(row => {
     row.addEventListener('click', () => toggleCategoryFilter(sliceCategories[Number(row.dataset.slice)]));
   });
+}
+
+const EXPENSE_CHART_OPTS = { txType: 'Expense', canvasId: 'categoryChart', legendId: 'categoryLegend', chartKey: 'category' };
+const INCOME_CHART_OPTS = { txType: 'Income', canvasId: 'incomeCategoryChart', legendId: 'incomeCategoryLegend', chartKey: 'incomeCategory' };
+
+function buildBothCategoryCharts(rows) {
+  buildCategoryChart(rows, EXPENSE_CHART_OPTS);
+  buildCategoryChart(rows, INCOME_CHART_OPTS);
 }
 
 function toggleCategoryFilter(cats) {
@@ -908,7 +948,7 @@ function renderAnalysisPage() {
   filteredRows = applyCategoryFilter(dateFilteredRows);
   const rows = filteredRows;
 
-  document.getElementById('sourceLabel').textContent = `${sourceName} — ${currentRows.length} transactions`;
+  document.getElementById('sourceLabel').textContent = `${sourceName} · ${currentRows.length} transactions`;
 
   const heroNumberEl = document.getElementById('heroNumber');
   if (rows.length === 0) {
@@ -921,10 +961,11 @@ function renderAnalysisPage() {
     document.getElementById('statAvg').textContent = currencyFmt.format(0);
     ['cumulative', 'monthly'].forEach(k => { if (charts[k]) { charts[k].destroy(); charts[k] = null; } });
     if (window.Chart && dateFilteredRows.length > 0) {
-      buildCategoryChart(dateFilteredRows);
+      buildBothCategoryCharts(dateFilteredRows);
     } else {
-      if (charts.category) { charts.category.destroy(); charts.category = null; }
+      ['category', 'incomeCategory'].forEach(k => { if (charts[k]) { charts[k].destroy(); charts[k] = null; } });
       document.getElementById('categoryLegend').innerHTML = '';
+      document.getElementById('incomeCategoryLegend').innerHTML = '';
     }
     currentPage = 1;
     renderTable();
@@ -946,7 +987,7 @@ function renderAnalysisPage() {
   if (window.Chart) {
     buildCumulativeChart(rows);
     buildMonthlyChart(rows);
-    buildCategoryChart(dateFilteredRows);
+    buildBothCategoryCharts(dateFilteredRows);
   } else {
     showToast('Charts could not load (Chart.js unreachable). Table still works.', true);
   }
@@ -1150,7 +1191,7 @@ function analyzeCSV(text) {
     }
 
     if (header.length && cells.length !== header.length) {
-      issues.push(`Row has ${cells.length} column(s), expected ${header.length} — columns may be misaligned`);
+      issues.push(`Row has ${cells.length} column(s), expected ${header.length} (columns may be misaligned)`);
     }
 
     let type = typeRaw ? typeRaw.trim() : '';
@@ -1182,7 +1223,7 @@ function renderValidationPreview(text) {
   [['date', analysis.dateIdx], ['description', analysis.descIdx], ['category', analysis.catIdx], ['type', analysis.typeIdx], ['amount', analysis.amountIdx]]
     .forEach(([key, i]) => { (i === -1 ? notFound : found).push(fieldLabel[key]); });
   document.getElementById('validationColumnNote').textContent = notFound.length
-    ? `Detected columns: ${found.join(', ')}. Not found: ${notFound.join(', ')} — defaults will be used where possible.`
+    ? `Detected columns: ${found.join(', ')}. Not found: ${notFound.join(', ')} (defaults will be used where possible).`
     : `Detected columns: ${found.join(', ')}. Showing the first ${analysis.sampleRows.length} row(s) as raw data vs. how they'll be read.`;
 
   const tbody = document.getElementById('validationTableBody');
@@ -1190,16 +1231,16 @@ function renderValidationPreview(text) {
     const dateIssue = r.issues.some(i => i.toLowerCase().includes('date'));
     const amountIssue = r.issues.some(i => i.toLowerCase().includes('amount'));
     const colIssue = r.issues.some(i => i.toLowerCase().includes('column'));
-    const dateDisplay = r.parsed.date ? r.parsed.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
-    const amountDisplay = r.parsed.amount != null ? currencyFmt.format(r.parsed.amount) : '—';
+    const dateDisplay = r.parsed.date ? r.parsed.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '–';
+    const amountDisplay = r.parsed.amount != null ? currencyFmt.format(r.parsed.amount) : '–';
     return `
       <tr class="${colIssue ? 'row-mismatch' : ''}">
         <td class="num muted">${r.rowNum - 1}</td>
-        <td class="${dateIssue ? 'val-mismatch' : ''}"><div class="val-raw">${escapeHtml(r.raw.date || '—')}</div><div class="val-parsed">${dateDisplay}</div></td>
-        <td><div class="val-raw">${escapeHtml(r.raw.description || '—')}</div><div class="val-parsed">${escapeHtml(r.parsed.description)}</div></td>
-        <td><div class="val-raw">${escapeHtml(r.raw.category || '—')}</div><div class="val-parsed">${escapeHtml(r.parsed.category)}</div></td>
-        <td><div class="val-raw">${escapeHtml(r.raw.type || '—')}</div><div class="val-parsed">${escapeHtml(r.parsed.type)}</div></td>
-        <td class="num ${amountIssue ? 'val-mismatch' : ''}"><div class="val-raw">${escapeHtml(r.raw.amount || '—')}</div><div class="val-parsed">${amountDisplay}</div></td>
+        <td class="${dateIssue ? 'val-mismatch' : ''}"><div class="val-raw">${escapeHtml(r.raw.date || '–')}</div><div class="val-parsed">${dateDisplay}</div></td>
+        <td><div class="val-raw">${escapeHtml(r.raw.description || '–')}</div><div class="val-parsed">${escapeHtml(r.parsed.description)}</div></td>
+        <td><div class="val-raw">${escapeHtml(r.raw.category || '–')}</div><div class="val-parsed">${escapeHtml(r.parsed.category)}</div></td>
+        <td><div class="val-raw">${escapeHtml(r.raw.type || '–')}</div><div class="val-parsed">${escapeHtml(r.parsed.type)}</div></td>
+        <td class="num ${amountIssue ? 'val-mismatch' : ''}"><div class="val-raw">${escapeHtml(r.raw.amount || '–')}</div><div class="val-parsed">${amountDisplay}</div></td>
       </tr>`;
   }).join('');
 
@@ -1267,7 +1308,7 @@ function handleFile(file) {
       const { rows, skipped } = parseCSV(e.target.result);
       loadData(rows, file.name, e.target.result);
       if (rows.length > 0 && skipped > 0) {
-        showToast(`Loaded ${rows.length} rows — skipped ${skipped} missing a date or amount.`, false);
+        showToast(`Loaded ${rows.length} rows, skipped ${skipped} missing a date or amount.`, false);
       }
     } catch (err) {
       showToast("Could not read that file. Make sure it's a CSV with columns like date, description, category, type, and amount.", true);
@@ -1286,7 +1327,7 @@ function downloadSample() {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  showToast('Sample CSV downloaded — drop it back in to load it.', false);
+  showToast('Sample CSV downloaded. Drop it back in to load it.', false);
 }
 
 document.getElementById('downloadSampleBtn').addEventListener('click', downloadSample);
