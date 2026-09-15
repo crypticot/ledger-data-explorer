@@ -3,19 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ledger: CSV data explorer</title>
+<title>Ledger: Data Explorer</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%230e0c13'/%3E%3Cpath d='M12 3.5 18.5 12 12 20.5 5.5 12 12 3.5Z' fill='%238b7ec4'/%3E%3C/svg%3E">
-<meta name="description" content="Ledger: CSV data explorer. Drop a CSV of transactions and get instant income, expense, and category breakdowns, entirely in your browser.">
+<meta name="description" content="Ledger Data Explorer. Drop a CSV or Excel file of transactions and get instant income, expense, and category breakdowns, entirely in your browser.">
 <meta name="theme-color" content="#0e0c13">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://crypticot.github.io/ledger-data-explorer/">
-<meta property="og:title" content="Ledger: CSV data explorer">
-<meta property="og:description" content="Upload a CSV and get net position, income/expense breakdowns, category donuts, and a sortable table. Nothing leaves your browser.">
+<meta property="og:title" content="Ledger: Data Explorer">
+<meta property="og:description" content="Upload a CSV or Excel file and get net position, income/expense breakdowns, category donuts, and a sortable table. Nothing leaves your browser.">
 <meta property="og:image" content="https://crypticot.github.io/ledger-data-explorer/ledger-data-explorer.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="chart.umd.min.js"></script>
+<script src="xlsx.full.min.js"></script>
 <style>
   :root{
     --bg:#0e0c13;
@@ -105,12 +106,23 @@
 
   .dashboard{display:flex; flex-direction:column; gap:1.3rem;}
 
-  .filters-row{display:flex; align-items:center; gap:0.7rem; flex-wrap:wrap; margin-bottom:1.3rem;}
+  .filters-row{display:flex; align-items:center; gap:0.9rem; flex-wrap:wrap; margin-bottom:1.3rem;}
+  .filters-group{display:flex; align-items:center; gap:0.7rem; flex-wrap:wrap;}
   .filters-label{color:var(--text-muted); font-size:0.85rem;}
   .filter-select{background:var(--bg-soft); border:1px solid var(--border); border-radius:var(--radius-sm); padding:0.5rem 0.7rem; color:var(--text); font-family:var(--font-body); font-size:0.85rem; min-width:130px; cursor:pointer;}
   .filter-select:focus{outline:none; border-color:var(--accent-dim);}
+  .currency-group{display:flex; align-items:center; gap:0.5rem; padding-left:0.9rem; border-left:1px solid var(--border-soft); margin-left:auto;}
   #customCurrencyInput{min-width:70px; width:70px; text-transform:uppercase; cursor:text;}
   #customCurrencyInput::placeholder{color:var(--text-faint);}
+  .ms-dropdown{position:relative; display:inline-block;}
+  .ms-trigger{text-align:left; white-space:nowrap;}
+  .ms-panel{position:absolute; top:calc(100% + 4px); left:0; z-index:20; background:var(--surface-raised); border:1px solid var(--border); border-radius:var(--radius-sm); padding:0.4rem; min-width:170px; max-height:220px; overflow-y:auto; box-shadow:0 8px 24px rgba(0,0,0,0.35);}
+  .ms-panel[hidden]{display:none;}
+  .ms-option{display:flex; align-items:center; gap:0.5rem; padding:0.35rem 0.4rem; font-size:0.82rem; cursor:pointer; border-radius:6px;}
+  .ms-option:hover{background:var(--bg-soft);}
+  .ms-option input{accent-color:var(--accent); cursor:pointer;}
+  .ms-empty{color:var(--text-faint); font-size:0.8rem; padding:0.3rem;}
+  .ms-clear{display:block; width:100%; text-align:left; background:none; border:none; color:var(--accent); font-size:0.78rem; cursor:pointer; padding:0.3rem 0.4rem; margin-bottom:0.2rem; border-bottom:1px solid var(--border-soft);}
 
   .hero-row{display:grid; grid-template-columns:1.6fr 1fr; gap:1.2rem;}
   .hero-panel{position:relative; overflow:hidden; background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius-lg); padding:1.8rem 1.9rem 0; min-height:300px; display:flex; flex-direction:column;}
@@ -239,6 +251,7 @@
     .masthead{flex-direction:column; align-items:stretch; gap:1.2rem;}
     .masthead-actions{width:100%; flex-wrap:nowrap; gap:0.5rem;}
     .masthead-actions .btn{flex:1 1 0; text-align:center; padding:0.62rem 0.4rem; font-size:0.78rem;}
+    .currency-group{margin-left:0; padding-left:0; border-left:none; width:100%;}
   }
   @media (prefers-reduced-motion: reduce){
     *{transition:none !important; animation:none !important;}
@@ -255,13 +268,13 @@
       <span class="brand-mark">&#9670;</span>
       <div>
         <h1>Ledger</h1>
-        <p>Drop a CSV, see what it's telling you.</p>
+        <p>Drop a CSV or Excel file, see what it's telling you.</p>
       </div>
     </div>
     <div class="masthead-actions">
       <button id="downloadSampleBtn" class="btn btn-ghost" type="button">Download sample CSV</button>
       <button id="uploadBtn" class="btn btn-solid" type="button">Upload CSV</button>
-      <input type="file" id="fileInput" accept=".csv,text/csv" hidden>
+      <input type="file" id="fileInput" accept=".csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
     </div>
   </header>
 
@@ -272,14 +285,14 @@
 
   <section id="page-home" class="page">
     <section id="emptyState" class="empty-state">
-      <div class="scan-frame" id="dropzone" role="button" tabindex="0" aria-label="Upload a CSV file">
+      <div class="scan-frame" id="dropzone" role="button" tabindex="0" aria-label="Upload a CSV or Excel file">
         <div class="corner corner-tl"></div>
         <div class="corner corner-tr"></div>
         <div class="corner corner-bl"></div>
         <div class="corner corner-br"></div>
         <p class="empty-status">No data loaded yet</p>
-        <p class="empty-title">Drop your CSV file here</p>
-        <p class="empty-sub">Or click to browse. Works best with columns for date, description, category, type, and amount.</p>
+        <p class="empty-title">Drop your CSV or Excel file here</p>
+        <p class="empty-sub">Or click to browse. Accepts .csv and .xlsx. Works best with columns for date, description, category, type, and amount.</p>
       </div>
       <button id="loadSampleBtn" class="link-btn" type="button">Or explore instantly with the sample ledger</button>
     </section>
@@ -327,11 +340,11 @@
       <div class="accordion" id="helpAccordion">
         <div class="accordion-item open">
           <button type="button" class="accordion-trigger" onclick="toggleAccordion(this)">
-            What CSV format works best?
+            What file format works best?
             <svg class="accordion-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
           <div class="accordion-panel"><div class="accordion-body">
-            <p>A header row plus columns for <b>date</b>, <b>description</b>, <b>category</b>, <b>type</b>, and <b>amount</b> work best. Only date and amount are required; the rest are filled in with sensible defaults if missing.</p>
+            <p>CSV and Excel (.xlsx) files both work the same way. A header row plus columns for <b>date</b>, <b>description</b>, <b>category</b>, <b>type</b>, and <b>amount</b> work best. Only date and amount are required; the rest are filled in with sensible defaults if missing.</p>
             <p>Dates can be day-first (31/01/2024) or month-first (01/31/2024): the app looks at your whole file to figure out which one you're using, so stay consistent within a single file. If there's no type column, a negative or positive amount decides whether a row counts as income or an expense.</p>
           </div></div>
         </div>
@@ -405,30 +418,41 @@
   <section id="page-analysis" class="page" hidden>
     <div class="dashboard">
       <div class="filters-row" id="filtersRow">
-        <span class="filters-label">Filter by</span>
-        <select id="filterYear" class="filter-select" onchange="onFilterChange('year')"></select>
-        <select id="filterMonth" class="filter-select" onchange="onFilterChange('month')"></select>
-        <select id="currencySelect" class="filter-select" onchange="onCurrencyChange()">
-          <option value="USD">USD ($)</option>
-          <option value="NGN">NGN (&#8358;)</option>
-          <option value="EUR">EUR (&euro;)</option>
-          <option value="GBP">GBP (&pound;)</option>
-          <option value="JPY">JPY (&yen;)</option>
-          <option value="CNY">CNY (&yen;)</option>
-          <option value="INR">INR (&#8377;)</option>
-          <option value="CAD">CAD (CA$)</option>
-          <option value="AUD">AUD (A$)</option>
-          <option value="ZAR">ZAR (R)</option>
-          <option value="KES">KES (KSh)</option>
-          <option value="GHS">GHS (GH&#8373;)</option>
-          <option value="custom">Custom&hellip;</option>
-        </select>
-        <input type="text" id="customCurrencyInput" class="filter-select" maxlength="3" placeholder="e.g. XAF" oninput="onCustomCurrencyInput()" hidden>
-        <button type="button" class="link-btn" id="filterResetBtn">Reset filter</button>
-        <span id="categoryFilterIndicator" class="category-filter-indicator" hidden>
-          <span id="categoryFilterText"></span>
-          <button type="button" id="categoryFilterClearBtn" class="filter-indicator-clear" title="Clear category filter">&times;</button>
-        </span>
+        <div class="filters-group">
+          <span class="filters-label">Filter by</span>
+          <div class="ms-dropdown" id="yearDropdown">
+            <button type="button" class="filter-select ms-trigger" id="yearDropdownBtn">All years</button>
+            <div class="ms-panel" id="yearPanel" hidden></div>
+          </div>
+          <div class="ms-dropdown" id="monthDropdown">
+            <button type="button" class="filter-select ms-trigger" id="monthDropdownBtn">All months</button>
+            <div class="ms-panel" id="monthPanel" hidden></div>
+          </div>
+          <button type="button" class="link-btn" id="filterResetBtn">Reset filter</button>
+          <span id="categoryFilterIndicator" class="category-filter-indicator" hidden>
+            <span id="categoryFilterText"></span>
+            <button type="button" id="categoryFilterClearBtn" class="filter-indicator-clear" title="Clear category filter">&times;</button>
+          </span>
+        </div>
+        <div class="currency-group">
+          <span class="filters-label">Currency</span>
+          <select id="currencySelect" class="filter-select" onchange="onCurrencyChange()">
+            <option value="USD">USD ($)</option>
+            <option value="NGN">NGN (&#8358;)</option>
+            <option value="EUR">EUR (&euro;)</option>
+            <option value="GBP">GBP (&pound;)</option>
+            <option value="JPY">JPY (&yen;)</option>
+            <option value="CNY">CNY (&yen;)</option>
+            <option value="INR">INR (&#8377;)</option>
+            <option value="CAD">CAD (CA$)</option>
+            <option value="AUD">AUD (A$)</option>
+            <option value="ZAR">ZAR (R)</option>
+            <option value="KES">KES (KSh)</option>
+            <option value="GHS">GHS (GH&#8373;)</option>
+            <option value="custom">Custom&hellip;</option>
+          </select>
+          <input type="text" id="customCurrencyInput" class="filter-select" maxlength="3" placeholder="e.g. XAF" oninput="onCustomCurrencyInput()" hidden>
+        </div>
       </div>
 
       <div class="hero-row">
@@ -584,7 +608,7 @@ let currentRows = [];
 let sourceName = '';
 let currentRawText = '';
 let currentAnalysis = null;
-let dateFilter = { year: null, month: null };
+let dateFilter = { years: new Set(), months: new Set() };
 let dateFilteredRows = [];
 let filteredRows = [];
 let categoryFilter = new Set();
@@ -900,8 +924,8 @@ function onCurrencyChange() {
 
 function onCustomCurrencyInput() {
   const input = document.getElementById('customCurrencyInput');
-  const code = input.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 3);
-  input.value = code;
+  if (input.value.length > 3) input.value = input.value.slice(0, 3);
+  const code = input.value;
   currencyFmt.symbol = code ? code + ' ' : '';
   renderAnalysisPage();
 }
@@ -909,40 +933,70 @@ function onCustomCurrencyInput() {
 /* ─── DATE / YEAR FILTERS ──────────────────────────────────────────── */
 function monthName(m) { return new Date(2000, m, 1).toLocaleDateString('en-US', { month: 'long' }); }
 
-function yearsAvailable(monthSel) {
+function yearsAvailable(monthsSel) {
   const set = new Set();
-  currentRows.forEach(r => { if (monthSel == null || r.date.getMonth() === monthSel) set.add(r.date.getFullYear()); });
+  currentRows.forEach(r => { if (monthsSel.size === 0 || monthsSel.has(r.date.getMonth())) set.add(r.date.getFullYear()); });
   return Array.from(set).sort((a, b) => a - b);
 }
-function monthsAvailable(yearSel) {
+function monthsAvailable(yearsSel) {
   const set = new Set();
-  currentRows.forEach(r => { if (yearSel == null || r.date.getFullYear() === yearSel) set.add(r.date.getMonth()); });
+  currentRows.forEach(r => { if (yearsSel.size === 0 || yearsSel.has(r.date.getFullYear())) set.add(r.date.getMonth()); });
   return Array.from(set).sort((a, b) => a - b);
+}
+
+function multiSelectLabel(selectedSet, noun, formatValue) {
+  if (selectedSet.size === 0) return `All ${noun}s`;
+  if (selectedSet.size === 1) return formatValue(Array.from(selectedSet)[0]);
+  return `${selectedSet.size} ${noun}s`;
+}
+
+function renderMultiSelectPanel(panelId, options, selectedSet, onToggle) {
+  const panel = document.getElementById(panelId);
+  const clearRow = selectedSet.size > 0 ? `<button type="button" class="ms-clear">Clear</button>` : '';
+  panel.innerHTML = clearRow + (options.length
+    ? options.map(o => `
+        <label class="ms-option">
+          <input type="checkbox" value="${o.value}" ${selectedSet.has(o.value) ? 'checked' : ''}>
+          <span>${escapeHtml(o.label)}</span>
+        </label>`).join('')
+    : '<p class="ms-empty">No options</p>');
+  panel.querySelectorAll('input[type=checkbox]').forEach(cb => {
+    cb.addEventListener('change', () => onToggle(parseInt(cb.value, 10), cb.checked));
+  });
+  const clearBtn = panel.querySelector('.ms-clear');
+  if (clearBtn) clearBtn.addEventListener('click', () => { selectedSet.clear(); currentPage = 1; renderAnalysisPage(); });
 }
 
 function renderFilters() {
-  const years = yearsAvailable(dateFilter.month);
-  const months = monthsAvailable(dateFilter.year);
-  const yEl = document.getElementById('filterYear');
-  const mEl = document.getElementById('filterMonth');
-  yEl.innerHTML = '<option value="">All years</option>' + years.map(y => `<option value="${y}">${y}</option>`).join('');
-  mEl.innerHTML = '<option value="">All months</option>' + months.map(m => `<option value="${m}">${monthName(m)}</option>`).join('');
-  yEl.value = dateFilter.year == null ? '' : String(dateFilter.year);
-  mEl.value = dateFilter.month == null ? '' : String(dateFilter.month);
+  const years = yearsAvailable(dateFilter.months);
+  const months = monthsAvailable(dateFilter.years);
+
+  renderMultiSelectPanel('yearPanel', years.map(y => ({ value: y, label: String(y) })), dateFilter.years, (val, checked) => {
+    if (checked) dateFilter.years.add(val); else dateFilter.years.delete(val);
+    currentPage = 1;
+    renderAnalysisPage();
+  });
+  renderMultiSelectPanel('monthPanel', months.map(m => ({ value: m, label: monthName(m) })), dateFilter.months, (val, checked) => {
+    if (checked) dateFilter.months.add(val); else dateFilter.months.delete(val);
+    currentPage = 1;
+    renderAnalysisPage();
+  });
+
+  document.getElementById('yearDropdownBtn').textContent = multiSelectLabel(dateFilter.years, 'year', (v) => String(v));
+  document.getElementById('monthDropdownBtn').textContent = multiSelectLabel(dateFilter.months, 'month', (v) => monthName(v));
 }
 
-function onFilterChange(which) {
-  const yEl = document.getElementById('filterYear');
-  const mEl = document.getElementById('filterMonth');
-  if (which === 'year') dateFilter.year = yEl.value === '' ? null : parseInt(yEl.value, 10);
-  else dateFilter.month = mEl.value === '' ? null : parseInt(mEl.value, 10);
-  renderAnalysisPage();
+function toggleMsPanel(panelId) {
+  const panel = document.getElementById(panelId);
+  const wasHidden = panel.hidden;
+  document.querySelectorAll('.ms-panel').forEach(p => { p.hidden = true; });
+  panel.hidden = !wasHidden;
 }
 
 function applyDateFilter(rows) {
   return rows.filter(r =>
-    (dateFilter.year == null || r.date.getFullYear() === dateFilter.year) &&
-    (dateFilter.month == null || r.date.getMonth() === dateFilter.month)
+    (dateFilter.years.size === 0 || dateFilter.years.has(r.date.getFullYear())) &&
+    (dateFilter.months.size === 0 || dateFilter.months.has(r.date.getMonth()))
   );
 }
 
@@ -1131,7 +1185,7 @@ function renderHomePreview() {
 
 /* ─── VALIDATION PREVIEW ───────────────────────────────────────────── */
 function dateShape(raw) {
-  return String(raw).replace(/[0-9]/g, '#');
+  return String(raw).trim().replace(/[0-9]+/g, '#').replace(/[A-Za-z]+/g, 'A');
 }
 
 function analyzeCSV(text) {
@@ -1275,7 +1329,7 @@ function onDataLoaded(rows, name, rawText) {
   currentRows = rows;
   sourceName = name;
   currentRawText = rawText;
-  dateFilter = { year: null, month: null };
+  dateFilter = { years: new Set(), months: new Set() };
   categoryFilter = new Set();
   tableSort = [];
   currentPage = 1;
@@ -1307,8 +1361,56 @@ function resetData() {
   switchPage('home');
 }
 
+function xlsxCellToText(v) {
+  if (v instanceof Date) {
+    const y = v.getFullYear();
+    const m = String(v.getMonth() + 1).padStart(2, '0');
+    const d = String(v.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+  return v == null ? '' : String(v);
+}
+
+function csvEscapeCell(v) {
+  const s = String(v);
+  return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
+function rowsToCSV(rowsAoa) {
+  return rowsAoa.map(row => row.map(cell => csvEscapeCell(xlsxCellToText(cell))).join(',')).join('\n');
+}
+
 function handleFile(file) {
   if (!file) return;
+  const isExcel = /\.xlsx$/i.test(file.name) || file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+  if (isExcel) {
+    if (!window.XLSX) {
+      showToast('Excel support could not load (xlsx.full.min.js unreachable). Try a CSV instead.', true);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const rowsAoa = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '', raw: true });
+        const csvText = rowsToCSV(rowsAoa);
+        const { rows, skipped } = parseCSV(csvText);
+        loadData(rows, file.name, csvText);
+        if (rows.length > 0 && skipped > 0) {
+          showToast(`Loaded ${rows.length} rows, skipped ${skipped} missing a date or amount.`, false);
+        }
+      } catch (err) {
+        showToast("Could not read that Excel file. Make sure it's a valid .xlsx with columns like date, description, category, type, and amount.", true);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    return;
+  }
+
   const reader = new FileReader();
   reader.onload = (e) => {
     try {
@@ -1318,7 +1420,7 @@ function handleFile(file) {
         showToast(`Loaded ${rows.length} rows, skipped ${skipped} missing a date or amount.`, false);
       }
     } catch (err) {
-      showToast("Could not read that file. Make sure it's a CSV with columns like date, description, category, type, and amount.", true);
+      showToast("Could not read that file. Make sure it's a CSV or Excel file with columns like date, description, category, type, and amount.", true);
     }
   };
   reader.readAsText(file);
@@ -1352,12 +1454,17 @@ document.getElementById('resetBtn').addEventListener('click', resetData);
 document.getElementById('previewResetBtn').addEventListener('click', resetData);
 document.getElementById('viewAnalysisBtn').addEventListener('click', () => switchPage('analysis'));
 document.getElementById('filterResetBtn').addEventListener('click', () => {
-  dateFilter = { year: null, month: null };
+  dateFilter = { years: new Set(), months: new Set() };
   renderAnalysisPage();
 });
 document.getElementById('categoryFilterClearBtn').addEventListener('click', () => {
   categoryFilter.clear();
   renderAnalysisPage();
+});
+document.getElementById('yearDropdownBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleMsPanel('yearPanel'); });
+document.getElementById('monthDropdownBtn').addEventListener('click', (e) => { e.stopPropagation(); toggleMsPanel('monthPanel'); });
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.ms-dropdown')) document.querySelectorAll('.ms-panel').forEach(p => { p.hidden = true; });
 });
 document.getElementById('searchInput').addEventListener('input', () => { currentPage = 1; renderTable(); });
 document.querySelectorAll('.chip').forEach(chip => {
