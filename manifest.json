@@ -1,0 +1,22 @@
+{
+  "name": "Ledger: Data Explorer",
+  "short_name": "Ledger",
+  "description": "Upload a CSV or Excel file and get net position, income/expense breakdowns, category donuts, and a sortable table. Nothing leaves your browser.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#0e0c13",
+  "theme_color": "#0e0c13",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
